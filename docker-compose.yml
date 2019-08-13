@@ -9,8 +9,6 @@ services:
             - ${WWW_ROOT}:/var/www/html:cached
             - ./conf/nginx/:/etc/nginx/conf.d/
             - certs-vol:/certs:ro
-        depends_on:
-            - phpmyadmin
         environment:
             - HOST_NAME=${HOST_NAME}
         command: /bin/sh -c "envsubst < /etc/nginx/conf.d/templates/server_name.template > /etc/nginx/conf.d/server_name.active && nginx -g 'daemon off;'"
@@ -19,7 +17,7 @@ services:
         restart: always
 
     php:
-        build: ./Dockerfiles/php7fpm
+        image: developeregrem/pve-phpfpm
         volumes:
             - ${WWW_ROOT}:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
@@ -27,6 +25,15 @@ services:
             - internal-network
         environment:
             - TZ=${TZ}
+            - LOCALE=${LOCALE}
+            - APP_ENV=${APP_ENV}
+            - APP_SECRET=${APP_SECRET}
+            - DATABASE_URL=${DATABASE_URL}
+            - MAILER_URL=${MAILER_URL}
+            - FROM_MAIL=${FROM_MAIL}
+            - FROM_NAME=${FROM_NAME}
+            - RETURN_PATH=${RETURN_PATH}
+            - MAIL_HOST=${MAIL_HOST}
         restart: always
 
     db:
@@ -43,18 +50,6 @@ services:
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_BACKUP_PASSWORD: ${MYSQL_BACKUP_PASSWORD}
             MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER}
-        networks:
-            - internal-network
-
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
-        container_name: phpmyadmin
-        environment:
-            - PMA_HOST=db
-            - PMA_ABSOLUTE_URI=https://${PMA_HOST}/pma/
-        restart: always
-        depends_on:
-            - db
         networks:
             - internal-network
     
