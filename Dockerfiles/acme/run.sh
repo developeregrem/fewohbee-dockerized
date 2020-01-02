@@ -53,8 +53,8 @@ then
     $method
 fi
 
-# check validity of certificate, < 7 days? => renew
-if ! openssl x509 -checkend 604800 -noout -in $certfile
+# check validity of certificate, < 30 days? => renew
+if ! openssl x509 -checkend 2592000 -noout -in $certfile
 then
     echo "renew"
     $method

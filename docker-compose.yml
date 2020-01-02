@@ -37,7 +37,7 @@ services:
         restart: always
 
     db:
-        image: mariadb:10.3
+        image: mariadb:10.4
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
