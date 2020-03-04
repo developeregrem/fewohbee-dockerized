@@ -17,7 +17,7 @@ services:
         restart: always
 
     php:
-        image: developeregrem/pve-phpfpm
+        image: developeregrem/pve-phpfpm:7.4-latest
         volumes:
             - ${WWW_ROOT}:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
@@ -41,7 +41,7 @@ services:
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
-             - ../dbbackup:/dbbackup:cached
+             - ${MYSQL_BACKUP_FOLDER}:/dbbackup:cached
              - ./data/db:/db
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
