@@ -15,6 +15,23 @@ The setup contains:
 
 - ACME for letsencrypt or self-signed certificates (with automatic renew)
 
+## Installation
+
+Clone the master branch of the repository.
+
+  ````
+  cd /opt
+  git clone https://github.com/developeregrem/pve-dockerized.git
+  cd pve-dockerized
+  ````
+  
+Run the interactive installtion script to generate the configuration file and setup the application.
+
+  ````
+  chmod +x install.sh
+  ./install.sh
+  ````
+
 ## Usage
 
 Please refer to the documentation in the Wiki: [https://github.com/developeregrem/pve/wiki/Docker-Setup](https://github.com/developeregrem/pve/wiki/Docker-Setup)
