@@ -18,6 +18,17 @@ isAvailable() {
     fi
 }
 
+createCron() {
+    targetCron="/etc/cron.d/$1"
+    ln -s $PWD/cron.d/$1 $targetCron    
+    if [ $? -ne 0 ]
+    then
+        echo "Could not create symlink $targetCron. Do you have the permission to write there?"
+        exit 1
+    fi
+    echo "A cronjob was created in $target."
+}
+
 checkRequirements(){
     isAvailable "openssl"
     opensslBin=$(which openssl)
@@ -60,6 +71,28 @@ if [ "$ssl" == "letsencrypt" ]
 then
     $(sed 's@LETSENCRYPT=false@LETSENCRYPT=true@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
     $(sed 's@SELF_SIGNED=true@SELF_SIGNED=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+fi
+
+########## setup cron ##########
+cronDefault="yes"
+cronDB=""
+cronDocker=""
+read -p "Enable automatic database backups?  [$cronDefault]:" cronDB
+cronDB="${cronDB:-${cronDefault}}"
+
+if [ "$cronDB" == "$cronDefault" ]
+then
+    createCron "backup_mysql_docker"
+    chmod +x backup-db.sh
+    echo "Backups will be stored in ../dbbackup."
+fi
+
+read -p "Enable automatic updates of docker images?  [$cronDefault]:" cronDocker
+cronDocker="${cronDocker:-${cronDefault}}"
+
+if [ "$cronDocker" == "$cronDefault" ]
+then
+    createCron "update-docker"
 fi
 
 ########## setup symfony env ##########
@@ -119,7 +152,7 @@ done
 echo "Creating db backup user ..."
 sleep 3
 dbQuery="GRANT LOCK TABLES, SELECT ON *.* TO \"backupuser\"@\"%\" IDENTIFIED BY \"$mysqlBackupPw\""
-docker-compose exec db /bin/sh -c "mysql -p$mysqlRootPw -uroot -e '$dbQuery'"
+$dockerComposeBin exec db /bin/sh -c "mysql -p$mysqlRootPw -uroot -e '$dbQuery'"
 
 ########## init tool ##########
 $dockerComposeBin exec --user www-data php /bin/sh -c "php pve/bin/console app:first-run"
