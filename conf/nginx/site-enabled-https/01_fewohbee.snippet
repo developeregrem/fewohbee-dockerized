@@ -5,7 +5,7 @@ location / {
 }
     
 location ~ ^/index\.php(/|$) {
-    root /var/www/html/pve/public;
+    root /var/www/html/fewohbee/public;
     fastcgi_split_path_info ^(.+\.php)(/.+)$;
     fastcgi_pass php:9000;
     fastcgi_index index.php;
