@@ -1,7 +1,7 @@
 
- # pve-dockerized
+ # fewohbee-dockerized
 
-This docker-compose setup is part of the [guesthouse administration tool](https://github.com/developeregrem/pve). pve-dockerized provides all necessary software/images in order to run the guesthouse administration tool (Pensionsverwaltung) out of the box.
+This docker-compose setup is part of the [guesthouse administration tool](https://github.com/developeregrem/fewohbee). fewohbee-dockerized provides all necessary software/images in order to run the guesthouse administration tool (Pensionsverwaltung) out of the box.
 
 The setup contains:  
 
@@ -9,7 +9,7 @@ The setup contains:
 
 -  [mariadb](https://hub.docker.com/_/mariadb) as database management system
 
--  [PHP 7.4-fpm-alpine](https://hub.docker.com/_/php/) with [composer](https://hub.docker.com/_/composer) which [installs](https://github.com/developeregrem/pve-phpfpm) the guesthouse administration tool when the container is started.
+-  [PHP 7.4-fpm-alpine](https://hub.docker.com/_/php/) with [composer](https://hub.docker.com/_/composer) which [installs](https://github.com/developeregrem/fewohbee-phpfpm) the guesthouse administration tool when the container is started.
 
 -  [redis](https://hub.docker.com/_/redis) as in-memory cache
 
@@ -21,8 +21,8 @@ Clone the master branch of the repository.
 
   ````
   cd /opt
-  git clone https://github.com/developeregrem/pve-dockerized.git
-  cd pve-dockerized
+  git clone https://github.com/developeregrem/fewohbee-dockerized.git
+  cd fewohbee-dockerized
   ````
   
 Run the interactive installtion script to generate the configuration file and setup the application.
@@ -34,4 +34,4 @@ Run the interactive installtion script to generate the configuration file and se
 
 ## Usage
 
-Please refer to the documentation in the Wiki: [https://github.com/developeregrem/pve/wiki/Docker-Setup](https://github.com/developeregrem/pve/wiki/Docker-Setup)
+Please refer to the documentation in the Wiki: [https://github.com/developeregrem/fewohbee/wiki/Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup)
