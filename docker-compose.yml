@@ -17,7 +17,7 @@ services:
         restart: always
 
     php:
-        image: developeregrem/pve-phpfpm:7.4-latest
+        image: developeregrem/fewohbee-phpfpm:7.4-latest
         volumes:
             - ${WWW_ROOT}:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini

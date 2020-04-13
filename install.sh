@@ -55,7 +55,7 @@ pveHostDefault=$(hostname)
 pveHost=""
 read -p "Please enter the host name of your server [$pveHostDefault]:" pveHost
 pveHost="${pveHost:-${pveHostDefault}}"
-$(sed "s/HOST_NAME=pve/HOST_NAME=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed "s/HOST_NAME=fewohbee/HOST_NAME=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
 ########## setup certificate self-signed or letsencrypt ##########
 sslDefault="self-signed"
@@ -141,7 +141,7 @@ $dockerComposeBin exec acme /bin/sh -c "./run.sh"
 ########## application setup ##########
 echo "Setting up application ..."
 echo "Pulling app dependencies and setting up the database (this will take some time)."
-# this check depends on the script entrypoint.sh from pve-phpfpm image
+# this check depends on the script entrypoint.sh from fewohbee-phpfpm image
 until [ "`$dockerComposeBin exec -T php /bin/sh -c 'cat /firstrun'`" == "1"  ]
 do 
     echo "waiting to finish initilization ..."
@@ -155,11 +155,11 @@ dbQuery="GRANT LOCK TABLES, SELECT ON *.* TO \"backupuser\"@\"%\" IDENTIFIED BY 
 $dockerComposeBin exec db /bin/sh -c "mysql -p$mysqlRootPw -uroot -e '$dbQuery'"
 
 ########## init tool ##########
-$dockerComposeBin exec --user www-data php /bin/sh -c "php pve/bin/console app:first-run"
+$dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
 
 echo "done"
 echo "You can now open a browser and visit https://$pveHost."
 echo "If you want to use the conversation feature please modify the section in the .env file accordingly."
-echo "  > see https://github.com/developeregrem/pve/wiki/Konfiguration#e-mails"
+echo "  > see https://github.com/developeregrem/fewohbee/wiki/Konfiguration#e-mails"
 
 exit 0

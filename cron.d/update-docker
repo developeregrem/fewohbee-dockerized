@@ -1,2 +1,2 @@
 # min   hour    day     month   weekday command
-00      04      *      *       1       root   /opt/acme-php-nginx-dockerized/update-docker.sh > /var/log/docker-update.log 2>&1
+00      04      *      *       1       root   /opt/fewohbee-dockerized/update-docker.sh > /var/log/docker-update.log 2>&1

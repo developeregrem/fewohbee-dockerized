@@ -49,7 +49,7 @@ then
     cp /dummyssl/* /certs
     restart_containers
 	# generate dh params
-	openssl dhparam -out /certs/dhparams.pem 4096
+	#openssl dhparam -out /certs/dhparams.pem 4096
     $method
 fi
 
