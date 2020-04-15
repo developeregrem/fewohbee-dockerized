@@ -35,6 +35,7 @@ services:
             - RETURN_PATH=${RETURN_PATH}
             - MAIL_HOST=${MAIL_HOST}
             - DB_SERVER_VERSION=mariadb-10.4.11
+            - WEB_HOST=${WEB_HOST}
         restart: always
 
     db:
