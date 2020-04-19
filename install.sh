@@ -30,7 +30,7 @@ createCron() {
         echo "Could not create symlink $targetCron. Do you have the permission to write there?"
         exit 1
     fi
-    echo "A cronjob was created in $target."
+    echo "A cronjob was created in $targetCron."
 }
 
 checkRequirements(){
