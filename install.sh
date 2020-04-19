@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ -f ".env" ]; then
     echo "Already installed. If you want to change settings please modify the file .env manually."
@@ -19,6 +19,10 @@ isAvailable() {
 }
 
 createCron() {
+    if [ ! -d "/etc/cron.d/" ]; then
+        echo "Could not create cronjob. Path /etc/cron.d/ does not exists."
+        return 1
+    fi
     targetCron="/etc/cron.d/$1"
     ln -s $PWD/cron.d/$1 $targetCron    
     if [ $? -ne 0 ]
@@ -83,8 +87,11 @@ cronDB="${cronDB:-${cronDefault}}"
 if [ "$cronDB" == "$cronDefault" ]
 then
     createCron "backup_mysql_docker"
-    chmod +x backup-db.sh
-    echo "Backups will be stored in ../dbbackup."
+    if [ $? -eq 0 ]
+    then
+        echo "Backups will be stored in ../dbbackup."
+    fi
+    chmod +x backup-db.sh  
 fi
 
 read -p "Enable automatic updates of docker images?  [$cronDefault]:" cronDocker
