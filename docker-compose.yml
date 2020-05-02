@@ -36,6 +36,8 @@ services:
             - MAIL_HOST=${MAIL_HOST}
             - DB_SERVER_VERSION=mariadb-10.4.11
             - WEB_HOST=${WEB_HOST}
+            - REDIS_HOST=${REDIS_HOST}
+            - REDIS_IDX=${REDIS_IDX}
         restart: always
 
     db:
