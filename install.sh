@@ -81,7 +81,7 @@ fi
 cronDefault="yes"
 cronDB=""
 cronDocker=""
-read -p "Enable automatic database backups?  [$cronDefault]:" cronDB
+read -p "Enable automatic database backups? (yes/no) [$cronDefault]:" cronDB
 cronDB="${cronDB:-${cronDefault}}"
 
 if [ "$cronDB" == "$cronDefault" ]
@@ -94,7 +94,7 @@ then
     chmod +x backup-db.sh  
 fi
 
-read -p "Enable automatic updates of docker images?  [$cronDefault]:" cronDocker
+read -p "Enable automatic updates of docker images? (yes/no) [$cronDefault]:" cronDocker
 cronDocker="${cronDocker:-${cronDefault}}"
 
 if [ "$cronDocker" == "$cronDefault" ]
@@ -107,9 +107,15 @@ pveEnvDefault="prod"
 pveEnv=""
 while ! [[ "$pveEnv" =~ ^(prod|dev)$ ]] 
 do
-    read -p "Do you want to run the tool in productive (prod) mode oder development (dev) mode [$pveEnvDefault]:" pveEnv
+    read -p "Do you want to run the tool in productive mode oder development mode (prod/dev) [$pveEnvDefault]:" pveEnv
     pveEnv="${pveEnv:-${pveEnvDefault}}"
 done
+
+### when prod is used, use redis caching
+if [ "$pveEnv" == "prod" ]
+then
+    pveEnv="redis"
+fi
 
 $(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 echo "Setting up $pveEnv environment."
@@ -151,7 +157,7 @@ echo "Pulling app dependencies and setting up the database (this will take some 
 # this check depends on the script entrypoint.sh from fewohbee-phpfpm image
 until [ "`$dockerComposeBin exec -T php /bin/sh -c 'cat /firstrun'`" == "1"  ]
 do 
-    echo "waiting to finish initilization ..."
+    echo "still waiting ..."
     sleep 10
 done
 
@@ -163,6 +169,23 @@ $dockerComposeBin exec db /bin/sh -c "mysql -p$mysqlRootPw -uroot -e '$dbQuery'"
 
 ########## init tool ##########
 $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
+
+########## load test data ##########
+## always load templates
+$dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console doctrine:fixtures:load --append --group templates"
+testDataDefault="no"
+testData=""
+while ! [[ "$testData" =~ ^(yes|no|y|n)$ ]] 
+do
+    read -p "Do you want to load some initial test data into the application? (yes/no) [$testDataDefault]:" testData
+    testData="${testData:-${testDataDefault}}"
+done
+
+# default is self-signed
+if [ "$testData" == "yes" ]
+then
+    $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console doctrine:fixtures:load --append --group settings --group customer --group reservation --group invoices"
+fi
 
 echo "done"
 echo "You can now open a browser and visit https://$pveHost."
