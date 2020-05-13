@@ -79,11 +79,15 @@ services:
         command: /bin/sh -c 'chmod +x /run.sh && chmod 0744 /etc/periodic/daily/updatecert && crond -f'
         environment:
             - HOST_NAME=${HOST_NAME}    # used for self signed certificate
+            - LETSENCRYPT_DOMAINS=${LETSENCRYPT_DOMAINS}
             - EMAIL=${EMAIL}
             - SELF_SIGNED=${SELF_SIGNED}
             - LETSENCRYPT=${LETSENCRYPT}
             - TZ=${TZ}
             - DOCKER_API_VERSION=${DOCKER_API_VERSION}
+            - DYNDNS_PROVIDER=${DYNDNS_PROVIDER}
+            - DEDYN_TOKEN=${DEDYN_TOKEN}
+            - DEDYN_NAME=${DEDYN_NAME}
         networks:
             - internal-network
     
