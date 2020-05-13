@@ -19,6 +19,11 @@ selfsignedcert(){
 
 letsencryptcert(){
     echo "Letsencryptcert"
+    if [ "${DYNDNS_PROVIDER}" = "desec.io" ]
+    then
+        certbot --manual --non-interactive --agree-tos --manual-public-ip-logging-ok --renew-by-default --email "${EMAIL}" --manual-auth-hook /hook.sh --manual-cleanup-hook /hook.sh \
+        --preferred-challenges dns -d "${DEDYN_NAME}" certonly 
+    else
         certbot certonly \
     	    --agree-tos \
     	    --webroot \
@@ -27,6 +32,9 @@ letsencryptcert(){
     	    --renew-by-default \
     	    --quiet \
     	    --email "${EMAIL}"
+    fi
+
+        
     cp /etc/letsencrypt/live/${HOST_NAME}/fullchain.pem /certs
     cp /etc/letsencrypt/live/${HOST_NAME}/privkey.pem /certs
     restart_containers
@@ -42,14 +50,25 @@ then
     method=selfsignedcert
 fi
 
+if [ "${DYNDNS_PROVIDER}" = "desec.io" ] && [ ! -f ".dedynauth" ]
+then
+    echo "using desec provider and fetching hook script"
+    wget https://raw.githubusercontent.com/desec-io/certbot-hook/master/hook.sh
+    wget https://raw.githubusercontent.com/desec-io/certbot-hook/master/.dedynauth
+	# replace credentials in fetched file with the one from .env file
+    $(sed 's@^DEDYN_TOKEN=.*@DEDYN_TOKEN='"${DEDYN_TOKEN}"'@g' .dedynauth > .dedynauth.tmp && mv .dedynauth.tmp .dedynauth)
+    $(sed 's@^DEDYN_NAME=.*@DEDYN_NAME='"${DEDYN_NAME}"'@g' .dedynauth > .dedynauth.tmp && mv .dedynauth.tmp .dedynauth)
+    chmod +x /hook.sh
+fi
 
 # first run, when no certificate exists create one
 if [ ! -f "$certfile" ]
 then
     cp /dummyssl/* /certs
+    
     restart_containers
 	# generate dh params
-	#openssl dhparam -out /certs/dhparams.pem 4096
+#	openssl dhparam -out /certs/dhparams.pem 4096
     $method
 fi
 
