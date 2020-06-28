@@ -12,7 +12,7 @@ restart_containers(){
 }
 
 selfsignedcert(){
-    cn="'/CN=${HOST_NAME}'"    
+    cn="/CN=${HOST_NAME}"    
     openssl req -subj `echo $cn` -x509 -nodes -days 365 -newkey rsa:2048 -keyout $privkey -out $certfile
     restart_containers
 }

@@ -11,4 +11,5 @@ RUN apk add --no-cache \
         openssl \
         openssl-dev \
         dialog \
+        bash \
         && pip install certbot
