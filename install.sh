@@ -73,8 +73,29 @@ done
 # default is self-signed
 if [ "$ssl" == "letsencrypt" ]
 then
+    # ask for email for letsencrypt
+    leMailDefault=""
+    leMail=""
+    read -p "Please enter your email address to get informed when your letsencrypt certificate is about to expire:" leMail
+    leMail="${leMail:-${leMailDefault}}"
+
+    leDomains="$pveHost"
+
+    # ask whether www should be added as letsencrypt domain
+    leWwwDefault="yes"
+    leWww=""
+    read -p "Add www subdomain to your letsencrypt certificate: www.${pveHost}? (yes/no) [$leWwwDefault]:" leWww
+    leWww="${leWww:-${leWwwDefault}}"
+
+    if [ "$leWww" == "$leWwwDefault" ]
+    then
+        leDomains="${leDomains} www.${pveHost}"
+    fi
+
     $(sed 's@LETSENCRYPT=false@LETSENCRYPT=true@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
     $(sed 's@SELF_SIGNED=true@SELF_SIGNED=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+    $(sed 's@LETSENCRYPT_DOMAINS=<domain.tld>@LETSENCRYPT_DOMAINS='"$leDomains"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+    $(sed 's/EMAIL=<your mail address>/EMAIL='"$leMail"'/g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 fi
 
 ########## setup cron ##########
