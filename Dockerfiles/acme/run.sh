@@ -56,13 +56,14 @@ letsencryptcert(){
 }
 
 dedynauth() {
-    if [ "${DYNDNS_PROVIDER}" = "desec.io" ] && [ ! -f ".dedynauth" ]
+    if [ "${DYNDNS_PROVIDER}" = "desec.io" ] && [ ! -f "/.dedynauth" ]
     then
         echo "using desec provider and fetching hook script"
-        wget https://raw.githubusercontent.com/desec-io/certbot-hook/master/hook.sh
-        wget https://raw.githubusercontent.com/desec-io/certbot-hook/master/.dedynauth
-        $(sed 's@^DEDYN_TOKEN=.*@DEDYN_TOKEN='"${DEDYN_TOKEN}"'@g' .dedynauth > .dedynauth.tmp && mv .dedynauth.tmp .dedynauth)
-        $(sed 's@^DEDYN_NAME=.*@DEDYN_NAME='"${DEDYN_NAME}"'@g' .dedynauth > .dedynauth.tmp && mv .dedynauth.tmp .dedynauth)
+        wget -O /hook.sh https://raw.githubusercontent.com/desec-io/certbot-hook/master/hook.sh
+        wget -O /.dedynauth https://raw.githubusercontent.com/desec-io/certbot-hook/master/.dedynauth
+        $(sed 's@^DEDYN_TOKEN=.*@DEDYN_TOKEN='"${DEDYN_TOKEN}"'@g' /.dedynauth > /.dedynauth.tmp && mv /.dedynauth.tmp /.dedynauth)
+        $(sed 's@^DEDYN_NAME=.*@DEDYN_NAME='"${DEDYN_NAME}"'@g' /.dedynauth > /.dedynauth.tmp && mv /.dedynauth.tmp /
+.dedynauth)
         chmod +x /hook.sh
     fi
 }
