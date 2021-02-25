@@ -1,5 +1,5 @@
 # docker-compose build
-FROM python:3.7-alpine
+FROM python:3.9-alpine
 
 RUN apk add --no-cache \
         curl \
@@ -12,4 +12,5 @@ RUN apk add --no-cache \
         openssl-dev \
         dialog \
         bash \
+        cargo \
         && pip install certbot
