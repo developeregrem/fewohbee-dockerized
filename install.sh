@@ -138,6 +138,15 @@ then
     pveEnv="redis"
 fi
 
+### select language ###
+pveLangDefault="de"
+pveLang=""
+while ! [[ "$pveLang" =~ ^(de|en)$ ]] 
+do
+    read -p "Please choose the language of the tool (de/en) [$pveLangDefault]:" pveLang
+    pveLang="${pveLang:-${pveLangDefault}}"
+done
+
 $(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 echo "Setting up $pveEnv environment."
 
@@ -151,6 +160,7 @@ $(sed 's@MYSQL_ROOT_PASSWORD=<pw>@MYSQL_ROOT_PASSWORD='"$mysqlRootPw"'@g' $envTm
 $(sed 's@MYSQL_PASSWORD=<pw>@MYSQL_PASSWORD='"$mysqlPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@MYSQL_BACKUP_PASSWORD=<backuppassword>@MYSQL_BACKUP_PASSWORD=$mysqlBackupPw@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@APP_SECRET=<secret>@APP_SECRET=$appSecret@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
 # replace db password in db string
 $(sed "s@db_password@$mysqlPw@" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
