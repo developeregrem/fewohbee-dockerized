@@ -17,7 +17,7 @@ services:
         restart: always
 
     php:
-        image: developeregrem/fewohbee-phpfpm:7.4-latest
+        image: developeregrem/fewohbee-phpfpm:8.0
         volumes:
             - ${WWW_ROOT}:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
@@ -26,15 +26,15 @@ services:
         environment:
             - TZ=${TZ}
             - LOCALE=${LOCALE}
+            - FEWOHBEE_VERSION=${FEWOHBEE_VERSION:-latest}
             - APP_ENV=${APP_ENV}
             - APP_SECRET=${APP_SECRET}
             - DATABASE_URL=${DATABASE_URL}
-            - MAILER_URL=${MAILER_URL}
             - FROM_MAIL=${FROM_MAIL}
             - FROM_NAME=${FROM_NAME}
             - RETURN_PATH=${RETURN_PATH}
-            - MAIL_HOST=${MAIL_HOST}
-            - DB_SERVER_VERSION=mariadb-10.4.11
+            - MAILER_DSN=${MAILER_DSN:-null://localhost}
+            - DB_SERVER_VERSION=mariadb-10.5.9
             - WEB_HOST=${WEB_HOST}
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_IDX=${REDIS_IDX}
