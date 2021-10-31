@@ -94,8 +94,8 @@ then
 
     $(sed 's@LETSENCRYPT=false@LETSENCRYPT=true@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
     $(sed 's@SELF_SIGNED=true@SELF_SIGNED=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-    $(sed 's@LETSENCRYPT_DOMAINS=<domain.tld>@LETSENCRYPT_DOMAINS='"$leDomains"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-    $(sed 's/EMAIL=<your mail address>/EMAIL='"$leMail"'/g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+    $(sed 's@LETSENCRYPT_DOMAINS="<domain.tld>"@LETSENCRYPT_DOMAINS='"$leDomains"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+    $(sed 's/EMAIL="<your mail address>"/EMAIL='"$leMail"'/g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 fi
 
 ########## setup cron ##########
