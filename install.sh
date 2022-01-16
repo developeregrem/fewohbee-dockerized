@@ -222,5 +222,6 @@ echo "done"
 echo "You can now open a browser and visit https://$pveHost."
 echo "If you want to use the conversation feature please modify the section in the .env file accordingly."
 echo "  > see https://github.com/developeregrem/fewohbee/wiki/Konfiguration#e-mails"
+echo "To use the city lookup feature please refer to: https://github.com/developeregrem/fewohbee/wiki/City-Lookup"
 
 exit 0
