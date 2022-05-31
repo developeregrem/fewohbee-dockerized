@@ -34,14 +34,14 @@ services:
             - FROM_NAME=${FROM_NAME}
             - RETURN_PATH=${RETURN_PATH}
             - MAILER_DSN=${MAILER_DSN:-null://localhost}
-            - DB_SERVER_VERSION=mariadb-10.6.4
+            - DB_SERVER_VERSION=mariadb-10.8.3
             - WEB_HOST=${WEB_HOST}
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_IDX=${REDIS_IDX}
         restart: always
 
     db:
-        image: mariadb:10.6
+        image: mariadb:10.8
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
