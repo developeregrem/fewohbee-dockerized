@@ -38,10 +38,11 @@ services:
             - WEB_HOST=${WEB_HOST}
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_IDX=${REDIS_IDX}
+            - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
         restart: always
 
     db:
-        image: mariadb:10.8
+        image: mariadb:10.9
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
@@ -66,17 +67,13 @@ services:
             - internal-network
     
     acme:
-        build: ./Dockerfiles/acme
+        image: developeregrem/fewohbee-acme:latest
         volumes:
             - certs-vol:/certs
-            - ./Dockerfiles/acme/run.sh:/run.sh
-            - ./Dockerfiles/acme/updatecert:/etc/periodic/daily/updatecert
             - /var/run/docker.sock:/var/run/docker.sock
             - ${WWW_ROOT}:/var/www:cached
-            - ./Dockerfiles/acme/ssl-example:/dummyssl
         restart: always
         entrypoint: ""
-        command: /bin/sh -c 'chmod +x /run.sh && chmod 0744 /etc/periodic/daily/updatecert && crond -f'
         environment:
             - HOST_NAME=${HOST_NAME}    # used for self signed certificate
             - LETSENCRYPT_DOMAINS=${LETSENCRYPT_DOMAINS}
@@ -99,5 +96,4 @@ volumes:
     redis-vol:
     certs-vol:
     db-vol:
-    
     
