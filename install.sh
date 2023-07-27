@@ -13,7 +13,16 @@ isAvailable() {
     tmp=$(which echo $1)
     if [ $? -ne 0 ]
     then
-        echo "docker, docker-compose and openssl must be installed!"
+        echo "docker and openssl must be installed!"
+        exit 1
+    fi
+}
+
+isPluginAvailable() {
+    tmp=$($dockerBin $1 > /dev/null 2>&1)
+    if [ $? -ne 0 ]
+    then
+        echo "docker compose plugin must be installed!"
         exit 1
     fi
 }
@@ -38,8 +47,8 @@ checkRequirements(){
     opensslBin=$(which openssl)
     isAvailable "docker"
     dockerBin=$(which docker)
-    isAvailable "docker-compose"
-    dockerComposeBin=$(which docker-compose)
+    isPluginAvailable "compose version"
+    dockerComposeBin="$dockerBin compose"
 }
 
 checkRequirements

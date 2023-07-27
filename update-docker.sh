@@ -2,8 +2,9 @@
 
 cd "$(dirname "$0")"
 
-/usr/local/bin/docker-compose pull
-/usr/local/bin/docker-compose build --force-rm --pull
-/usr/local/bin/docker-compose stop
-/usr/local/bin/docker-compose up --force-recreate -d
+dockerBin=$(/usr/bin/which docker)
+$dockerBin compose pull
+$dockerBin compose build --force-rm --pull
+$dockerBin compose stop
+$dockerBin compose up --force-recreate -d
 docker image prune -f
