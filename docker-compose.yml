@@ -6,7 +6,7 @@ services:
             - 80:80
             - 443:443
         volumes:
-            - ${WWW_ROOT}:/var/www/html:cached
+            - feb-data:/var/www/html:cached
             - ./conf/nginx/:/etc/nginx/conf.d/
             - certs-vol:/certs:ro
         environment:
@@ -19,7 +19,7 @@ services:
     php:
         image: developeregrem/fewohbee-phpfpm:latest
         volumes:
-            - ${WWW_ROOT}:/var/www/html:cached
+            - feb-data:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
         networks:
             - internal-network
@@ -34,7 +34,7 @@ services:
             - FROM_NAME=${FROM_NAME}
             - RETURN_PATH=${RETURN_PATH}
             - MAILER_DSN=${MAILER_DSN:-null://localhost}
-            - DB_SERVER_VERSION=mariadb-10.8.3
+            - DB_SERVER_VERSION=11.3.2-MariaDB
             - WEB_HOST=${WEB_HOST}
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_IDX=${REDIS_IDX}
@@ -42,7 +42,7 @@ services:
         restart: always
 
     db:
-        image: mariadb:10.9
+        image: mariadb:11.3
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
@@ -71,7 +71,7 @@ services:
         volumes:
             - certs-vol:/certs
             - /var/run/docker.sock:/var/run/docker.sock
-            - ${WWW_ROOT}:/var/www:cached
+            - feb-data:/var/www:cached
         restart: always
         entrypoint: ""
         environment:
@@ -96,4 +96,5 @@ volumes:
     redis-vol:
     certs-vol:
     db-vol:
+    feb-data:
     

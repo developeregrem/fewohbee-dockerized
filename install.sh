@@ -205,7 +205,7 @@ done
 echo "Creating db backup user ..."
 sleep 3
 dbQuery="GRANT LOCK TABLES, SELECT ON *.* TO \"backupuser\"@\"%\" IDENTIFIED BY \"$mysqlBackupPw\""
-$dockerComposeBin exec db /bin/sh -c "mysql -p$mysqlRootPw -uroot -e '$dbQuery'"
+$dockerComposeBin exec db /bin/sh -c "mariadb -p$mysqlRootPw -uroot -e '$dbQuery'"
 
 ########## init tool ##########
 $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
