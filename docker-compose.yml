@@ -71,7 +71,7 @@ services:
         volumes:
             - certs-vol:/certs
             - /var/run/docker.sock:/var/run/docker.sock
-            - feb-data:/var/www:cached
+            - ${WWW_ROOT}:/var/www:cached
         restart: always
         entrypoint: ""
         environment:
