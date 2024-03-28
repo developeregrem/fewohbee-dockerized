@@ -6,7 +6,7 @@ services:
             - 80:80
             - 443:443
         volumes:
-            - feb-data:/var/www/html:cached
+            - ${WWW_ROOT}:/var/www/html:cached
             - ./conf/nginx/:/etc/nginx/conf.d/
             - certs-vol:/certs:ro
         environment:
@@ -19,7 +19,7 @@ services:
     php:
         image: developeregrem/fewohbee-phpfpm:latest
         volumes:
-            - feb-data:/var/www/html:cached
+            - ${WWW_ROOT}:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
         networks:
             - internal-network
