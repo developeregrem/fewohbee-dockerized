@@ -9,7 +9,7 @@ The setup contains:
 
 -  [mariadb](https://hub.docker.com/_/mariadb) as database management system
 
--  [PHP 8.2-fpm-alpine](https://hub.docker.com/_/php/) with [composer](https://hub.docker.com/_/composer) which [installs](https://github.com/developeregrem/fewohbee-phpfpm) the guesthouse administration tool when the container is started.
+-  [PHP 8.4-fpm-alpine](https://hub.docker.com/_/php/) with [composer](https://hub.docker.com/_/composer) which [installs](https://github.com/developeregrem/fewohbee-phpfpm) the guesthouse administration tool when the container is started.
 
 -  [redis](https://hub.docker.com/_/redis) as in-memory cache
 

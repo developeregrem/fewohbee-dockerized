@@ -18,7 +18,7 @@ then
 fi
 
 # perform a mysql_backup first if tehre was an automated version upgrade before
-mariadb-upgrade -uroot -p$MYSQL_ROOT_PASSWORD
+mariadb-upgrade -uroot -p$MARIADB_ROOT_PASSWORD
 
 
 #-c : complete-insert
@@ -26,7 +26,7 @@ mariadb-upgrade -uroot -p$MYSQL_ROOT_PASSWORD
 #-R : SP/functions
 #wochentag 1=Mo, 7=So
 date=`date +%u`
-mariadb-dump -c -n -R -p$pass -u$user $MYSQL_DATABASE > $localFolder/$MYSQL_DATABASE'_'$date.sql
+mariadb-dump -c -n -R -p$pass -u$user $MARIADB_DATABASE > $localFolder/$MARIADB_DATABASE'_'$date.sql
 
 
 #packen

@@ -160,19 +160,19 @@ $(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envTmp > $envTmp.tmp && mv $envTmp
 echo "Setting up $pveEnv environment."
 
 echo "Generating secrets and passwords."
-mysqlRootPw=$(openssl rand -base64 32)
-mysqlPw=$(openssl rand -base64 32 | shasum | cut -f 1 -d " ")
+mariadbRootPw=$(openssl rand -base64 32 | shasum | cut -f 1 -d " ")
+mariadbPw=$(openssl rand -base64 32 | shasum | cut -f 1 -d " ")
 mysqlBackupPw=$(openssl rand -base64 32 | shasum | cut -f 1 -d " ")
 appSecret=$(openssl rand -base64 23)
 
-$(sed 's@MYSQL_ROOT_PASSWORD=<pw>@MYSQL_ROOT_PASSWORD='"$mysqlRootPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-$(sed 's@MYSQL_PASSWORD=<pw>@MYSQL_PASSWORD='"$mysqlPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed 's@MARIADB_ROOT_PASSWORD=<pw>@MARIADB_ROOT_PASSWORD='"$mariadbRootPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed 's@MARIADB_PASSWORD=<pw>@MARIADB_PASSWORD='"$mariadbPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@MYSQL_BACKUP_PASSWORD=<backuppassword>@MYSQL_BACKUP_PASSWORD=$mysqlBackupPw@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@APP_SECRET=<secret>@APP_SECRET=$appSecret@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
 # replace db password in db string
-$(sed "s@db_password@$mysqlPw@" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed "s@db_password@$mariadbPw@" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
 mv $envTmp $envEnd
 
@@ -205,7 +205,7 @@ done
 echo "Creating db backup user ..."
 sleep 3
 dbQuery="GRANT LOCK TABLES, SELECT ON *.* TO \"backupuser\"@\"%\" IDENTIFIED BY \"$mysqlBackupPw\""
-$dockerComposeBin exec db /bin/sh -c "mariadb -p$mysqlRootPw -uroot -e '$dbQuery'"
+$dockerComposeBin exec db /bin/sh -c "mariadb -p$mariadbRootPw -uroot -e '$dbQuery'"
 
 ########## init tool ##########
 $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"

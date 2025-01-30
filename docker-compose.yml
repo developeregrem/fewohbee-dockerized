@@ -1,4 +1,3 @@
-version: "3"
 services:
     web:
         image: nginx:mainline-alpine
@@ -34,7 +33,7 @@ services:
             - FROM_NAME=${FROM_NAME}
             - RETURN_PATH=${RETURN_PATH}
             - MAILER_DSN=${MAILER_DSN:-null://localhost}
-            - DB_SERVER_VERSION=11.3.2-MariaDB
+            - DB_SERVER_VERSION=11.6.2-MariaDB
             - WEB_HOST=${WEB_HOST}
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_IDX=${REDIS_IDX}
@@ -42,17 +41,17 @@ services:
         restart: always
 
     db:
-        image: mariadb:11.3
+        image: mariadb:11.6
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
              - ${MYSQL_BACKUP_FOLDER}:/dbbackup:cached
              - ./data/db:/db
         environment:
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-            MYSQL_USER: ${MYSQL_USER}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+            MARIADB_USER: ${MARIADB_USER}
+            MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+            MARIADB_DATABASE: ${MARIADB_DATABASE}
             MYSQL_BACKUP_PASSWORD: ${MYSQL_BACKUP_PASSWORD}
             MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER}
         networks:
