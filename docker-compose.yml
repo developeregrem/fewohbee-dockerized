@@ -20,6 +20,7 @@ services:
         volumes:
             - feb-data:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
+            - ${WWW_ROOT}:/var/www/data:cached
         networks:
             - internal-network
         environment:
