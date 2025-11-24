@@ -39,6 +39,7 @@ services:
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_IDX=${REDIS_IDX}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
+            - CUSTOMER_SALUTATIONS=${CUSTOMER_SALUTATIONS}
         restart: always
 
     db:
