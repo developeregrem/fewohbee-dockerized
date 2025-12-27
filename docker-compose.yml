@@ -34,16 +34,19 @@ services:
             - FROM_NAME=${FROM_NAME}
             - RETURN_PATH=${RETURN_PATH}
             - MAILER_DSN=${MAILER_DSN:-null://localhost}
-            - DB_SERVER_VERSION=11.6.2-MariaDB
+            - DB_SERVER_VERSION=12.1.2-MariaDB
             - WEB_HOST=${WEB_HOST}
             - REDIS_HOST=${REDIS_HOST}
             - REDIS_IDX=${REDIS_IDX}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
             - CUSTOMER_SALUTATIONS=${CUSTOMER_SALUTATIONS}
+            - RELYING_PARTY_ID=${RELYING_PARTY_ID}
+            - RELYING_PARTY_NAME=${RELYING_PARTY_NAME}
+            - PASSKEY_ENABLED=${PASSKEY_ENABLED}
         restart: always
 
     db:
-        image: mariadb:11.6
+        image: mariadb:12.1
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached

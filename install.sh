@@ -69,6 +69,7 @@ pveHost=""
 read -p "Please enter the host name of your server [$pveHostDefault]:" pveHost
 pveHost="${pveHost:-${pveHostDefault}}"
 $(sed "s/HOST_NAME=fewohbee/HOST_NAME=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed "s/RELYING_PARTY_ID=example.com/RELYING_PARTY_ID=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
 ########## setup certificate self-signed or letsencrypt ##########
 sslDefault="self-signed"
