@@ -1,4 +1,4 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-0 * * * * cd /var/www/html/fewohbee && /usr/local/bin/php bin/console calendar:import:sync --force >> /proc/1/fd/1 2>&1
+0 * * * * cd /var/www/html/fewohbee && /usr/local/bin/php bin/console calendar:import:sync --force
