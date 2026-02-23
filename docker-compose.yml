@@ -23,29 +23,13 @@ services:
             - ${WWW_ROOT}:/var/www/data:cached
         networks:
             - internal-network
+        env_file:
+            - .env.app
         environment:
             - TZ=${TZ}
-            - LOCALE=${LOCALE}
-            - FEWOHBEE_VERSION=${FEWOHBEE_VERSION:-latest}
-            - APP_ENV=${APP_ENV}
-            - APP_SECRET=${APP_SECRET}
-            - DATABASE_URL=${DATABASE_URL}
-            - FROM_MAIL=${FROM_MAIL}
-            - FROM_NAME=${FROM_NAME}
-            - RETURN_PATH=${RETURN_PATH}
-            - MAILER_DSN=${MAILER_DSN:-null://localhost}
             - DB_SERVER_VERSION=12.1.2-MariaDB
-            - WEB_HOST=${WEB_HOST}
-            - REDIS_HOST=${REDIS_HOST}
-            - REDIS_IDX=${REDIS_IDX}
-            - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
-            - CUSTOMER_SALUTATIONS=${CUSTOMER_SALUTATIONS}
-            - INVOICE_FILENAME_PATTERN=${INVOICE_FILENAME_PATTERN}
-            - RELYING_PARTY_ID=${RELYING_PARTY_ID}
-            - RELYING_PARTY_NAME=${RELYING_PARTY_NAME}
-            - PASSKEY_ENABLED=${PASSKEY_ENABLED}
         restart: always
-    
+
     cron:
         image: developeregrem/fewohbee-phpcli:latest
         volumes:
@@ -54,26 +38,11 @@ services:
             - ./cron.d/cli:/opt/cron:ro
         networks:
             - internal-network
+        env_file:
+            - .env.app
         environment:
             - TZ=${TZ}
-            - LOCALE=${LOCALE}
-            - FEWOHBEE_VERSION=${FEWOHBEE_VERSION:-latest}
-            - APP_ENV=${APP_ENV}
-            - APP_SECRET=${APP_SECRET}
-            - DATABASE_URL=${DATABASE_URL}
-            - FROM_MAIL=${FROM_MAIL}
-            - FROM_NAME=${FROM_NAME}
-            - RETURN_PATH=${RETURN_PATH}
-            - MAILER_DSN=${MAILER_DSN:-null://localhost}
             - DB_SERVER_VERSION=12.1.2-MariaDB
-            - WEB_HOST=${WEB_HOST}
-            - REDIS_HOST=${REDIS_HOST}
-            - REDIS_IDX=${REDIS_IDX}
-            - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
-            - CUSTOMER_SALUTATIONS=${CUSTOMER_SALUTATIONS}
-            - RELYING_PARTY_ID=${RELYING_PARTY_ID}
-            - RELYING_PARTY_NAME=${RELYING_PARTY_NAME}
-            - PASSKEY_ENABLED=${PASSKEY_ENABLED}
         restart: always
 
     db:

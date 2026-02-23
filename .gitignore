@@ -1,3 +1,4 @@
 .env
+.env.app
 .DS_Store
 conf/nginx/server_name.active

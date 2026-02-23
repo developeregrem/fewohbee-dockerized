@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -f ".env" ]; then
-    echo "Already installed. If you want to change settings please modify the file .env manually."
+    echo "Already installed. If you want to change settings please modify the files .env and .env.app manually."
     exit 0
 fi
 
@@ -60,8 +60,12 @@ umask 0177
 envTemplate=.env.dist
 envTmp=.env.tmp
 envEnd=.env
+envAppTemplate=.env.app.dist
+envAppTmp=.env.app.tmp
+envAppEnd=.env.app
 
 cp $envTemplate $envTmp
+cp $envAppTemplate $envAppTmp
 
 ########## setup host name ##########
 pveHostDefault=$(hostname)
@@ -69,7 +73,7 @@ pveHost=""
 read -p "Please enter the host name of your server [$pveHostDefault]:" pveHost
 pveHost="${pveHost:-${pveHostDefault}}"
 $(sed "s/HOST_NAME=fewohbee/HOST_NAME=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-$(sed "s/RELYING_PARTY_ID=example.com/RELYING_PARTY_ID=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed "s/RELYING_PARTY_ID=example.com/RELYING_PARTY_ID=$pveHost/" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
 
 ########## setup certificate self-signed or letsencrypt ##########
 sslDefault="self-signed"
@@ -157,7 +161,7 @@ do
     pveLang="${pveLang:-${pveLangDefault}}"
 done
 
-$(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
 echo "Setting up $pveEnv environment."
 
 echo "Generating secrets and passwords."
@@ -169,13 +173,14 @@ appSecret=$(openssl rand -base64 23)
 $(sed 's@MARIADB_ROOT_PASSWORD=<pw>@MARIADB_ROOT_PASSWORD='"$mariadbRootPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed 's@MARIADB_PASSWORD=<pw>@MARIADB_PASSWORD='"$mariadbPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@MYSQL_BACKUP_PASSWORD=<backuppassword>@MYSQL_BACKUP_PASSWORD=$mysqlBackupPw@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-$(sed "s@APP_SECRET=<secret>@APP_SECRET=$appSecret@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-$(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed "s@APP_SECRET=<secret>@APP_SECRET=$appSecret@g" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
+$(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
 
-# replace db password in db string
-$(sed "s@db_password@$mariadbPw@" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+# replace db password in DATABASE_URL
+$(sed "s@db_password@$mariadbPw@" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
 
 mv $envTmp $envEnd
+mv $envAppTmp $envAppEnd
 
 ########## pull, build and start environment ##########
 echo "Preparing and starting docker-compose setup ..."
