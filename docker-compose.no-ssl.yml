@@ -1,15 +1,21 @@
+# Reverse-proxy mode: SSL is terminated by an external proxy (Traefik, Nginx, Caddy, etc.)
+# The web container listens on plain HTTP on LISTEN_PORT (default: 80).
+# No acme container — certificate management is handled by the external proxy.
+#
+# Usage: docker compose -f docker-compose.no-ssl.yml up -d
+
 services:
     web:
         image: nginx:mainline-alpine
         ports:
-            - 80:80
-            - 443:443
+            - ${LISTEN_PORT:-80}:80
         volumes:
             - feb-data:/var/www/html:cached
             - ./conf/nginx/:/etc/nginx/conf.d/
-            - certs-vol:/certs:ro
+            - ./conf/nginx/site.conf.no-ssl:/etc/nginx/conf.d/site.conf:ro
         environment:
             - HOST_NAME=${HOST_NAME}
+            - REVERSE_PROXY=true
         entrypoint: ["/bin/sh", "/etc/nginx/conf.d/docker-entrypoint.sh"]
         networks:
             - internal-network
@@ -62,7 +68,7 @@ services:
             MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER}
         networks:
             - internal-network
-    
+
     redis:
         image: redis:alpine
         restart: always
@@ -70,33 +76,12 @@ services:
              - redis-vol:/data/
         networks:
             - internal-network
-    
-    acme:
-        image: developeregrem/fewohbee-acme:latest
-        volumes:
-            - certs-vol:/certs
-            - feb-data:/var/www:cached
-        restart: always
-        environment:
-            - HOST_NAME=${HOST_NAME}    # used for self signed certificate
-            - LETSENCRYPT_DOMAINS=${LETSENCRYPT_DOMAINS}
-            - EMAIL=${EMAIL}
-            - SELF_SIGNED=${SELF_SIGNED}
-            - LETSENCRYPT=${LETSENCRYPT}
-            - TZ=${TZ}
-            - DYNDNS_PROVIDER=${DYNDNS_PROVIDER}
-            - DEDYN_TOKEN=${DEDYN_TOKEN}
-            - DEDYN_NAME=${DEDYN_NAME}
-        networks:
-            - internal-network
-    
+
 networks:
     internal-network:
         driver: bridge
-        
+
 volumes:
     redis-vol:
-    certs-vol:
     db-vol:
     feb-data:
-    

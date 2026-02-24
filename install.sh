@@ -192,11 +192,6 @@ then
     exit 1
 fi
 
-########## ssl setup ##########
-echo "Initiating certificate creation ..."
-sleep 3
-$dockerComposeBin exec acme /bin/sh -c "./run.sh"
-
 ########## application setup ##########
 echo "Setting up application ..."
 echo "Pulling app dependencies and setting up the database (this will take some time)."
@@ -217,8 +212,6 @@ $dockerComposeBin exec db /bin/sh -c "mariadb -p$mariadbRootPw -uroot -e '$dbQue
 $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
 
 ########## load test data ##########
-## always load templates
-$dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console doctrine:fixtures:load --append --group templates"
 testDataDefault="no"
 testData=""
 while ! [[ "$testData" =~ ^(yes|no|y|n)$ ]] 
