@@ -20,6 +20,9 @@ services:
 
     php:
         image: developeregrem/fewohbee-phpfpm:latest
+        depends_on:
+            db:
+                condition: service_healthy
         volumes:
             - feb-data:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
@@ -47,12 +50,14 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - INVOICE_FILENAME_PATTERN=${INVOICE_FILENAME_PATTERN}
-            - DEFAULT_URI=${DEFAULT_URI}
             # new-vars-marker
         restart: always
 
     cron:
         image: developeregrem/fewohbee-phpcli:latest
+        depends_on:
+            db:
+                condition: service_healthy
         volumes:
             - feb-data:/var/www/html:cached
             - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
@@ -81,7 +86,6 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - INVOICE_FILENAME_PATTERN=${INVOICE_FILENAME_PATTERN}
-            - DEFAULT_URI=${DEFAULT_URI}
             # new-vars-marker
         restart: always
 
@@ -100,6 +104,12 @@ services:
             MARIADB_DATABASE: ${MARIADB_DATABASE}
             MYSQL_BACKUP_PASSWORD: ${MYSQL_BACKUP_PASSWORD}
             MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER}
+        healthcheck:
+            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+            start_period: 30s
+            interval: 10s
+            timeout: 5s
+            retries: 5
         networks:
             - internal-network
 
