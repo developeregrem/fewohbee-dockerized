@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+# Select site config based on SSL mode
+if [ "${REVERSE_PROXY:-false}" = "true" ]; then
+    cp /etc/nginx/conf.d/site.conf.no-ssl /etc/nginx/conf.d/site.conf
+fi
+
 # Generate the active server_name config from template
 envsubst < /etc/nginx/conf.d/templates/server_name.template > /etc/nginx/conf.d/server_name.active
 

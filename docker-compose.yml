@@ -1,16 +1,14 @@
 services:
     web:
-        image: nginx:mainline-alpine
+        build: ./conf/nginx
         ports:
             - 80:80
             - 443:443
         volumes:
             - feb-data:/var/www/html:cached
-            - ./conf/nginx/:/etc/nginx/conf.d/
             - certs-vol:/certs:ro
         environment:
             - HOST_NAME=${HOST_NAME}
-        entrypoint: ["/bin/sh", "/etc/nginx/conf.d/docker-entrypoint.sh"]
         networks:
             - internal-network
         restart: always
