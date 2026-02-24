@@ -4,26 +4,12 @@ cd "$(dirname "$0")"
 
 dockerBin=$(/usr/bin/which docker)
 
+# Pull latest changes to docker-compose.yml and configuration files
+#git pull
+
 # Pull and build new images
 $dockerBin compose pull
 $dockerBin compose build --force-rm --pull
-
-# Migrate existing .env to .env + .env.app if .env.app does not exist yet.
-# This must happen before "docker compose up" since docker-compose.yml requires
-# .env.app to exist via the env_file directive.
-if [ ! -f ".env.app" ]; then
-    if grep -q "^# FewohBee Settings" .env 2>/dev/null; then
-        echo "Migrating FewohBee settings from .env to .env.app ..."
-        sed -n '/^# FewohBee Settings/,$p' .env > .env.app
-        chmod 0600 .env.app
-        echo "Created .env.app from .env."
-        echo "Please review .env.app and remove the FewohBee Settings section from .env manually."
-    else
-        echo "Warning: .env.app does not exist and no migration source found in .env."
-        echo "Please create .env.app from .env.app.dist manually."
-        exit 1
-    fi
-fi
 
 # Start containers. The php entrypoint will clone/update fewohbee via git.
 $dockerBin compose stop
@@ -36,7 +22,7 @@ until [ "$($dockerBin compose exec -T php /bin/sh -c 'cat /firstrun' 2>/dev/null
     sleep 10
 done
 
-# Sync new environment variables from the now-running container into .env.app
+# Sync new environment variables from the now-running container into .env
 echo "Checking for new environment variables ..."
 containerEnvDist=$($dockerBin compose exec --user www-data -T php /bin/sh -c "cat fewohbee/.env.dist" 2>/dev/null)
 
@@ -67,16 +53,28 @@ else
             continue
         fi
 
-        # Add if not already present in .env.app
-        if ! grep -q "^${varName}=" .env.app; then
+        # Add if not already present in .env
+        if ! grep -q "^${varName}=" .env; then
             if [ $addedVars -eq 0 ]; then
-                printf "\n# Variables added by update-docker.sh on %s\n" "$(date '+%Y-%m-%d')" >> .env.app
+                printf "\n# Variables added by update-docker.sh on %s\n" "$(date '+%Y-%m-%d')" >> .env
             fi
             # Write accumulated comments first, then the variable
             if [ -n "$commentBuffer" ]; then
-                printf "\n%s\n" "$commentBuffer" >> .env.app
+                printf "\n%s\n" "$commentBuffer" >> .env
             fi
-            printf "%s\n" "$line" >> .env.app
+            printf "%s\n" "$line" >> .env
+
+            # Also add the variable to the environment: sections in both compose files
+            # (inserted before the # new-vars-marker comment, which appears in php and cron services)
+            for composeFile in docker-compose.yml docker-compose.no-ssl.yml; do
+                if [ -f "$composeFile" ] && grep -q "# new-vars-marker" "$composeFile"; then
+                    tmpfile=$(mktemp)
+                    awk -v varline="            - ${varName}=\${${varName}}" \
+                        '/# new-vars-marker/ { print varline } { print }' \
+                        "$composeFile" > "$tmpfile" && mv "$tmpfile" "$composeFile"
+                fi
+            done
+
             echo "  Added: $varName"
             addedVars=$((addedVars + 1))
         fi
@@ -86,8 +84,8 @@ else
     done <<< "$containerEnvDist"
 
     if [ $addedVars -gt 0 ]; then
-        echo "$addedVars new variable(s) added to .env.app."
-        echo "Please review the new variables and adjust values if needed."
+        echo "$addedVars new variable(s) added to .env and docker-compose.yml / docker-compose.no-ssl.yml."
+        echo "Please review the new variables in .env and adjust values if needed."
         echo "Restarting php and cron containers to apply new environment variables ..."
         $dockerBin compose up --force-recreate -d php cron
     else

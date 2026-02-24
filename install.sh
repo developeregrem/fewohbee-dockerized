@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -f ".env" ]; then
-    echo "Already installed. If you want to change settings please modify the files .env and .env.app manually."
+    echo "Already installed. If you want to change settings please modify the file .env manually."
     exit 0
 fi
 
@@ -33,7 +33,7 @@ createCron() {
         return 1
     fi
     targetCron="/etc/cron.d/$1"
-    ln -s $PWD/cron.d/$1 $targetCron    
+    ln -s $PWD/cron.d/$1 $targetCron
     if [ $? -ne 0 ]
     then
         echo "Could not create symlink $targetCron. Do you have the permission to write there?"
@@ -55,17 +55,13 @@ checkRequirements
 
 echo "This script will guide you through the installation of the tool."
 
-# use env.dist as template and replace specific values during script execution
+# use .env.dist as template and replace specific values during script execution
 umask 0177
 envTemplate=.env.dist
 envTmp=.env.tmp
 envEnd=.env
-envAppTemplate=.env.app.dist
-envAppTmp=.env.app.tmp
-envAppEnd=.env.app
 
 cp $envTemplate $envTmp
-cp $envAppTemplate $envAppTmp
 
 ########## setup host name ##########
 pveHostDefault=$(hostname)
@@ -73,18 +69,17 @@ pveHost=""
 read -p "Please enter the host name of your server [$pveHostDefault]:" pveHost
 pveHost="${pveHost:-${pveHostDefault}}"
 $(sed "s/HOST_NAME=fewohbee/HOST_NAME=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-$(sed "s/RELYING_PARTY_ID=example.com/RELYING_PARTY_ID=$pveHost/" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
+$(sed "s/RELYING_PARTY_ID=example.com/RELYING_PARTY_ID=$pveHost/" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
-########## setup certificate self-signed or letsencrypt ##########
+########## setup certificate ##########
 sslDefault="self-signed"
 ssl=""
-while ! [[ "$ssl" =~ ^(self-signed|letsencrypt)$ ]] 
+while ! [[ "$ssl" =~ ^(self-signed|letsencrypt|reverse-proxy)$ ]]
 do
-    read -p "SSL Certificate: Using self-signed or letsencrypt? [$sslDefault]:" ssl
+    read -p "SSL Certificate: Using self-signed, letsencrypt or reverse-proxy? [$sslDefault]:" ssl
     ssl="${ssl:-${sslDefault}}"
 done
 
-# default is self-signed
 if [ "$ssl" == "letsencrypt" ]
 then
     # ask for email for letsencrypt
@@ -112,6 +107,13 @@ then
     $(sed 's/EMAIL="<your mail address>"/EMAIL='"$leMail"'/g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 fi
 
+# reverse-proxy: SSL is terminated externally — disable internal SSL and switch compose file
+if [ "$ssl" == "reverse-proxy" ]
+then
+    $(sed 's@SELF_SIGNED=true@SELF_SIGNED=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+    $(sed 's@COMPOSE_FILE=docker-compose.yml@COMPOSE_FILE=docker-compose.no-ssl.yml@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+fi
+
 ########## setup cron ##########
 cronDefault="yes"
 cronDB=""
@@ -124,9 +126,9 @@ then
     createCron "backup_mysql_docker"
     if [ $? -eq 0 ]
     then
-        echo "Backups will be stored in ../dbbackup."
+        echo "Backups will be stored in the db-backup-vol Docker volume."
     fi
-    chmod +x backup-db.sh  
+    chmod +x backup-db.sh
 fi
 
 read -p "Enable automatic updates of docker images? (yes/no) [$cronDefault]:" cronDocker
@@ -140,7 +142,7 @@ fi
 ########## setup symfony env ##########
 pveEnvDefault="prod"
 pveEnv=""
-while ! [[ "$pveEnv" =~ ^(prod|dev)$ ]] 
+while ! [[ "$pveEnv" =~ ^(prod|dev)$ ]]
 do
     read -p "Do you want to run the tool in productive mode oder development mode (prod/dev) [$pveEnvDefault]:" pveEnv
     pveEnv="${pveEnv:-${pveEnvDefault}}"
@@ -155,13 +157,14 @@ fi
 ### select language ###
 pveLangDefault="de"
 pveLang=""
-while ! [[ "$pveLang" =~ ^(de|en)$ ]] 
+while ! [[ "$pveLang" =~ ^(de|en)$ ]]
 do
     read -p "Please choose the language of the tool (de/en) [$pveLangDefault]:" pveLang
     pveLang="${pveLang:-${pveLangDefault}}"
 done
 
-$(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
+$(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+$(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 echo "Setting up $pveEnv environment."
 
 echo "Generating secrets and passwords."
@@ -173,14 +176,12 @@ appSecret=$(openssl rand -base64 23)
 $(sed 's@MARIADB_ROOT_PASSWORD=<pw>@MARIADB_ROOT_PASSWORD='"$mariadbRootPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed 's@MARIADB_PASSWORD=<pw>@MARIADB_PASSWORD='"$mariadbPw"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@MYSQL_BACKUP_PASSWORD=<backuppassword>@MYSQL_BACKUP_PASSWORD=$mysqlBackupPw@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-$(sed "s@APP_SECRET=<secret>@APP_SECRET=$appSecret@g" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
-$(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
+$(sed "s@APP_SECRET=<secret>@APP_SECRET=$appSecret@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
 # replace db password in DATABASE_URL
-$(sed "s@db_password@$mariadbPw@" $envAppTmp > $envAppTmp.tmp && mv $envAppTmp.tmp $envAppTmp)
+$(sed "s@db_password@$mariadbPw@" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 
 mv $envTmp $envEnd
-mv $envAppTmp $envAppEnd
 
 ########## pull, build and start environment ##########
 echo "Preparing and starting docker-compose setup ..."
@@ -197,7 +198,7 @@ echo "Setting up application ..."
 echo "Pulling app dependencies and setting up the database (this will take some time)."
 # this check depends on the script entrypoint.sh from fewohbee-phpfpm image
 until [ "`$dockerComposeBin exec -T php /bin/sh -c 'cat /firstrun'`" == "1"  ]
-do 
+do
     echo "still waiting ..."
     sleep 10
 done
@@ -211,23 +212,13 @@ $dockerComposeBin exec db /bin/sh -c "mariadb -p$mariadbRootPw -uroot -e '$dbQue
 ########## init tool ##########
 $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
 
-########## load test data ##########
-testDataDefault="no"
-testData=""
-while ! [[ "$testData" =~ ^(yes|no|y|n)$ ]] 
-do
-    read -p "Do you want to load some initial test data into the application? (yes/no) [$testDataDefault]:" testData
-    testData="${testData:-${testDataDefault}}"
-done
-
-# default is self-signed
-if [ "$testData" == "yes" ]
-then
-    $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console doctrine:fixtures:load --append --group settings --group customer --group reservation --group invoices"
-fi
-
 echo "done"
-echo "You can now open a browser and visit https://$pveHost."
+if [ "$ssl" == "reverse-proxy" ]
+then
+    echo "You can now open a browser and visit http://$pveHost (via reverse proxy)."
+else
+    echo "You can now open a browser and visit https://$pveHost."
+fi
 echo "If you want to use the conversation feature please modify the section in the .env file accordingly."
 echo "  > see https://github.com/developeregrem/fewohbee/wiki/Konfiguration#e-mails"
 echo "To use the city lookup feature please refer to: https://github.com/developeregrem/fewohbee/wiki/City-Lookup"

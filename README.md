@@ -15,14 +15,7 @@ This docker compose setup is part of the [fewohbee guesthouse administration too
 
 ## Configuration
 
-Two configuration files are required before starting the stack:
-
-| File | Contents |
-|------|----------|
-| `.env` | Infrastructure settings: hostname, database passwords, SSL/cert options |
-| `.env.app` | Application settings: locale, mailer, passkeys, app secret, … |
-
-Use `.env.dist` and `.env.app.dist` as reference templates.
+All settings are stored in a single `.env` file. Use `.env.dist` as the reference template.
 
 ## Setup
 
@@ -42,7 +35,7 @@ docker run --rm -it -v $(pwd):/config developeregrem/fewohbee-setup
 docker run --rm -it -v ${PWD}:/config developeregrem/fewohbee-setup
 ```
 
-The container asks a few questions (hostname, SSL mode, language), generates passwords and writes `.env` and `.env.app`.
+The container asks a few questions (hostname, SSL mode, language), generates passwords and writes `.env`.
 
 ### Option B – install.sh (Linux only)
 
@@ -69,8 +62,10 @@ docker compose up -d
 
 For deployments behind an external reverse proxy (Traefik, Nginx Proxy Manager, Caddy, etc.) that handles SSL termination. No `acme` container — the web container serves plain HTTP.
 
+Set `COMPOSE_FILE=docker-compose.no-ssl.yml` in `.env` (done automatically by the setup scripts when choosing `reverse-proxy`) and then:
+
 ```sh
-docker compose -f docker-compose.no-ssl.yml up -d
+docker compose up -d
 ```
 
 Configure the exposed HTTP port via `LISTEN_PORT` in `.env` (default: `80`).
@@ -89,11 +84,6 @@ Once `ready to handle connections` appears, run once to create the first admin u
 docker compose exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
 ```
 
-Optional: load sample data (guests, reservations, invoices)
-
-```sh
-docker compose exec --user www-data php sh -c 'php fewohbee/bin/console doctrine:fixtures:load --append --group settings --group customer --group reservation --group invoices'"
-```
 ## Updates
 
 ```sh
@@ -101,7 +91,7 @@ chmod +x update-docker.sh
 ./update-docker.sh
 ```
 
-The script pulls new images, restarts the stack and automatically syncs any new application environment variables into `.env.app`. New variables should be reviewed and adjusted after the update.
+The script pulls new images, restarts the stack and automatically syncs any new environment variables into `.env` and both compose files. New variables should be reviewed and adjusted after the update.
 
 ## Documentation
 
