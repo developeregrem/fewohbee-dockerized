@@ -20,12 +20,11 @@ services:
                 condition: service_healthy
         volumes:
             - feb-data:/var/www/html:cached
-            - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
         networks:
             - internal-network
         environment:
             - TZ=${TZ}
-            - DB_SERVER_VERSION=12.1.2-MariaDB
+            - DB_SERVER_VERSION=12.2.2-MariaDB
             - LOCALE=${LOCALE}
             - FEWOHBEE_VERSION=${FEWOHBEE_VERSION}
             - APP_ENV=${APP_ENV}
@@ -55,13 +54,11 @@ services:
                 condition: service_healthy
         volumes:
             - feb-data:/var/www/html:cached
-            - ./conf/php/conf.ini:/usr/local/etc/php/conf.d/conf.ini
-            - ./cron.d/cli:/opt/cron:ro
         networks:
             - internal-network
         environment:
             - TZ=${TZ}
-            - DB_SERVER_VERSION=12.1.2-MariaDB
+            - DB_SERVER_VERSION=12.2.2-MariaDB
             - LOCALE=${LOCALE}
             - FEWOHBEE_VERSION=${FEWOHBEE_VERSION}
             - APP_ENV=${APP_ENV}
@@ -85,12 +82,11 @@ services:
         restart: always
 
     db:
-        image: mariadb:12.1
+        image: mariadb:12.2
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
              - db-backup-vol:/dbbackup:cached
-             - ./data/db:/db
              - ./conf/db/create-backup-user.sh:/docker-entrypoint-initdb.d/create-backup-user.sh:ro
         environment:
             MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
