@@ -88,7 +88,6 @@ else
         echo "Please review the new variables in .env and adjust values if needed."
         echo "Restarting php and cron containers to apply new environment variables ..."
         $dockerBin compose up --force-recreate -d php cron
-        $dockerBin compose exec -T web nginx -s reload
     else
         echo "No new environment variables found."
     fi
