@@ -44,6 +44,7 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - INVOICE_FILENAME_PATTERN=${INVOICE_FILENAME_PATTERN}
+            - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             # new-vars-marker
         restart: always
 
@@ -78,6 +79,7 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - INVOICE_FILENAME_PATTERN=${INVOICE_FILENAME_PATTERN}
+            - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             # new-vars-marker
         restart: always
 
