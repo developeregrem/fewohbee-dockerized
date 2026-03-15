@@ -43,12 +43,10 @@ services:
             - FROM_NAME=${FROM_NAME}
             - RETURN_PATH=${RETURN_PATH}
             - MAIL_COPY=${MAIL_COPY}
-            - CUSTOMER_SALUTATIONS=${CUSTOMER_SALUTATIONS}
             - RELYING_PARTY_ID=${RELYING_PARTY_ID}
             - RELYING_PARTY_NAME=${RELYING_PARTY_NAME}
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
-            - INVOICE_FILENAME_PATTERN=${INVOICE_FILENAME_PATTERN}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             # new-vars-marker
         restart: always
@@ -78,12 +76,10 @@ services:
             - FROM_NAME=${FROM_NAME}
             - RETURN_PATH=${RETURN_PATH}
             - MAIL_COPY=${MAIL_COPY}
-            - CUSTOMER_SALUTATIONS=${CUSTOMER_SALUTATIONS}
             - RELYING_PARTY_ID=${RELYING_PARTY_ID}
             - RELYING_PARTY_NAME=${RELYING_PARTY_NAME}
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
-            - INVOICE_FILENAME_PATTERN=${INVOICE_FILENAME_PATTERN}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             # new-vars-marker
         restart: always
@@ -95,6 +91,7 @@ services:
              - db-vol:/var/lib/mysql:cached
              - db-backup-vol:/dbbackup:cached
              - ./conf/db/create-backup-user.sh:/docker-entrypoint-initdb.d/create-backup-user.sh:ro
+             - ./conf/db/backup_mysql_cron.sh:/db/backup_mysql_cron.sh:ro
         environment:
             MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
             MARIADB_USER: ${MARIADB_USER}
