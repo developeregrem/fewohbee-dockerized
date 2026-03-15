@@ -96,4 +96,4 @@ The script pulls new images, restarts the stack and automatically syncs any new 
 ## Documentation
 
 Full setup and configuration documentation:
-[https://github.com/developeregrem/fewohbee/wiki/Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup)
+[Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup) and  [Portainer-Setup](https://github.com/developeregrem/fewohbee/wiki/Portainer)
