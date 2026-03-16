@@ -90,8 +90,6 @@ services:
         volumes:
              - db-vol:/var/lib/mysql:cached
              - db-backup-vol:/dbbackup:cached
-             - ./conf/db/create-backup-user.sh:/docker-entrypoint-initdb.d/create-backup-user.sh:ro
-             - ./conf/db/backup_mysql_cron.sh:/db/backup_mysql_cron.sh:ro
         environment:
             MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
             MARIADB_USER: ${MARIADB_USER}

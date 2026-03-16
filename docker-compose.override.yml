@@ -1,0 +1,9 @@
+# Local overrides – loaded automatically by `docker compose`.
+# Adds bind mounts that require the cloned repository on the Docker host.
+# Portainer CE (git-based deploy) does not load this file.
+
+services:
+    db:
+        volumes:
+             - ./conf/db/create-backup-user.sh:/docker-entrypoint-initdb.d/create-backup-user.sh:ro
+             - ./conf/db/backup_mysql_cron.sh:/db/backup_mysql_cron.sh:ro

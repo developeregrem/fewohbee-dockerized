@@ -111,7 +111,7 @@ fi
 if [ "$ssl" == "reverse-proxy" ]
 then
     $(sed 's@SELF_SIGNED=true@SELF_SIGNED=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-    $(sed 's@COMPOSE_FILE=docker-compose.yml@COMPOSE_FILE=docker-compose.no-ssl.yml@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+    $(sed 's@COMPOSE_FILE=docker-compose.yml:docker-compose.override.yml@COMPOSE_FILE=docker-compose.no-ssl.yml:docker-compose.override.yml@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 fi
 
 ########## setup cron ##########
@@ -202,12 +202,6 @@ do
     echo "still waiting ..."
     sleep 10
 done
-
-########## create db backup user ##########
-echo "Creating db backup user ..."
-sleep 3
-dbQuery="GRANT LOCK TABLES, SELECT ON *.* TO \"backupuser\"@\"%\" IDENTIFIED BY \"$mysqlBackupPw\""
-$dockerComposeBin exec db /bin/sh -c "mariadb -p$mariadbRootPw -uroot -e '$dbQuery'"
 
 ########## init tool ##########
 $dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
