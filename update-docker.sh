@@ -22,15 +22,15 @@ $dockerBin compose build --force-rm --pull
 $dockerBin compose stop
 $dockerBin compose up --force-recreate -d
 
-# Wait for fewohbee to finish setup (git clone/pull + composer + migrations)
-echo "Waiting for fewohbee to finish setup ..."
-until [ "$($dockerBin compose exec -T php /bin/sh -c 'cat /firstrun' 2>/dev/null)" == "1" ]; do
-    echo "  still waiting ..."
-    sleep 10
-done
-
-# Sync new environment variables from the now-running container into .env (manual only)
 if [ "$cronMode" = false ]; then
+    # Wait for fewohbee to finish setup (git clone/pull + composer + migrations)
+    echo "Waiting for fewohbee to finish setup ..."
+    until [ "$($dockerBin compose exec -T php /bin/sh -c 'cat /firstrun' 2>/dev/null)" == "1" ]; do
+        echo "  still waiting ..."
+        sleep 10
+    done
+
+    # Sync new environment variables from the now-running container into .env (manual only)
     echo "Checking for new environment variables ..."
     containerEnvDist=$($dockerBin compose exec --user www-data -T php /bin/sh -c "cat fewohbee/.env.dist" 2>/dev/null)
 
