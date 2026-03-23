@@ -4,6 +4,7 @@ server {
     listen 80;
     listen [::]:80;
     index index.html index.php;
+    client_max_body_size 10m;
     error_log  /var/log/nginx/error.log;
     access_log /var/log/nginx/access.log;
 
