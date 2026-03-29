@@ -1,6 +1,6 @@
 services:
     web:
-        build: ./conf/nginx
+        image: developeregrem/fewohbee-web:latest
         ports:
             - 80:80
             - 443:443

@@ -1,5 +1,6 @@
 # Local overrides – loaded automatically by `docker compose`.
-# Adds bind mounts that require the cloned repository on the Docker host.
+# Add optional bind mounts here for local-only customization, e.g. database helper
+# scripts or custom nginx config files for the `web` service.
 # Portainer CE (git-based deploy) does not load this file.
 
 services:

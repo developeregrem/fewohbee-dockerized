@@ -6,7 +6,7 @@ This docker compose setup is part of the [fewohbee guesthouse administration too
 
 | Service | Image | Description |
 |---------|-------|-------------|
-| `web` | [nginx](https://hub.docker.com/_/nginx/) | Web server |
+| `web` | [fewohbee-web](https://github.com/developeregrem/fewohbee-web) | Web server |
 | `php` | [fewohbee-phpfpm](https://github.com/developeregrem/fewohbee-phpfpm) | PHP 8 FPM – clones and runs the app on first start |
 | `cron` | [fewohbee-phpcli](https://github.com/developeregrem/fewohbee-phpfpm) | PHP CLI for scheduled tasks |
 | `db` | [mariadb](https://hub.docker.com/_/mariadb) | Database |

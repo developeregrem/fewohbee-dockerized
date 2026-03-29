@@ -6,7 +6,7 @@
 
 services:
     web:
-        build: ./conf/nginx
+        image: developeregrem/fewohbee-web:latest
         ports:
             - ${LISTEN_PORT:-80}:80
         volumes:

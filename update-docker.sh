@@ -14,9 +14,8 @@ if [ "$cronMode" = false ]; then
     git pull
 fi
 
-# Pull and build new images
+# Pull new images
 $dockerBin compose pull
-$dockerBin compose build --force-rm --pull
 
 # Start containers. The php entrypoint will clone/update fewohbee via git.
 $dockerBin compose stop
