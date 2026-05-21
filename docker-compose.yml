@@ -43,6 +43,7 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
+            - FRAME_ANCESTORS=${FRAME_ANCESTORS}
             # new-vars-marker
         restart: always
 
@@ -76,6 +77,7 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
+            - FRAME_ANCESTORS=${FRAME_ANCESTORS}
             # new-vars-marker
         restart: always
 
