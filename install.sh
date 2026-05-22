@@ -148,10 +148,10 @@ do
     pveEnv="${pveEnv:-${pveEnvDefault}}"
 done
 
-### when prod is used, use redis caching
-if [ "$pveEnv" == "prod" ]
+### prod (default in .env.dist) uses redis caching; dev switches to filesystem
+if [ "$pveEnv" == "dev" ]
 then
-    pveEnv="redis"
+    $(sed 's@USE_REDIS_CACHE=true@USE_REDIS_CACHE=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 fi
 
 ### select language ###
@@ -194,17 +194,24 @@ then
 fi
 
 ########## application setup ##########
-echo "Setting up application ..."
-echo "Pulling app dependencies and setting up the database (this will take some time)."
-# this check depends on the script entrypoint.sh from fewohbee-phpfpm image
-until [ "`$dockerComposeBin exec -T php /bin/sh -c 'cat /firstrun'`" == "1"  ]
-do
+echo "Waiting for the php container to become healthy ..."
+waited=0
+while true; do
+    health=$($dockerComposeBin ps --format '{{.Service}} {{.Health}}' 2>/dev/null | grep '^php ' | awk '{print $2}')
+    if [ "$health" = "healthy" ]; then
+        break
+    fi
+    if [ $waited -ge 180 ]; then
+        echo "Warning: php container did not become healthy within 180s. Continuing anyway."
+        break
+    fi
     echo "still waiting ..."
-    sleep 10
+    sleep 5
+    waited=$((waited + 5))
 done
 
 ########## init tool ##########
-$dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
+$dockerComposeBin exec --user www-data php /bin/sh -c "php bin/console app:first-run"
 
 echo "done"
 if [ "$ssl" == "reverse-proxy" ]

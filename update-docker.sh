@@ -14,24 +14,49 @@ if [ "$cronMode" = false ]; then
     git pull
 fi
 
+# Legacy .env migration: APP_ENV=redis is deprecated, the new convention is
+# APP_ENV=prod + USE_REDIS_CACHE=true. The image entrypoint still tolerates
+# the old value (with a deprecation warning), but we clean up .env here so
+# future updates and tooling see the canonical form.
+if [ -f .env ] && grep -q "^APP_ENV=redis" .env; then
+    echo "Migrating legacy APP_ENV=redis in .env -> APP_ENV=prod + USE_REDIS_CACHE=true ..."
+    sed -i.bak 's/^APP_ENV=redis/APP_ENV=prod/' .env
+    if ! grep -q "^USE_REDIS_CACHE=" .env; then
+        echo "USE_REDIS_CACHE=true" >> .env
+    fi
+    rm -f .env.bak
+fi
+
 # Pull new images
 $dockerBin compose pull
 
-# Start containers. The php entrypoint will clone/update fewohbee via git.
+# Start containers. The uploads-migration init container runs first and
+# (idempotently) copies legacy feb-data uploads into the new volumes before
+# php starts. The php entrypoint then runs Doctrine migrations.
 $dockerBin compose stop
 $dockerBin compose up --force-recreate -d
 
 if [ "$cronMode" = false ]; then
-    # Wait for fewohbee to finish setup (git clone/pull + composer + migrations)
-    echo "Waiting for fewohbee to finish setup ..."
-    until [ "$($dockerBin compose exec -T php /bin/sh -c 'cat /firstrun' 2>/dev/null)" == "1" ]; do
-        echo "  still waiting ..."
-        sleep 10
+    # Wait for the php container to become healthy.
+    echo "Waiting for fewohbee to be ready ..."
+    waited=0
+    while true; do
+        health=$($dockerBin compose ps --format '{{.Service}} {{.Health}}' 2>/dev/null | grep '^php ' | awk '{print $2}')
+        if [ "$health" = "healthy" ]; then
+            break
+        fi
+        if [ $waited -ge 180 ]; then
+            echo "Warning: php container did not become healthy within 180s. Continuing anyway."
+            break
+        fi
+        echo "  still waiting ... (${waited}s)"
+        sleep 5
+        waited=$((waited + 5))
     done
 
     # Sync new environment variables from the now-running container into .env (manual only)
     echo "Checking for new environment variables ..."
-    containerEnvDist=$($dockerBin compose exec --user www-data -T php /bin/sh -c "cat fewohbee/.env.dist" 2>/dev/null)
+    containerEnvDist=$($dockerBin compose exec --user www-data -T php /bin/sh -c "cat .env.dist" 2>/dev/null)
 
     if [ $? -ne 0 ] || [ -z "$containerEnvDist" ]; then
         echo "Warning: Could not read .env.dist from container. Skipping env sync."
@@ -102,4 +127,4 @@ if [ "$cronMode" = false ]; then
     fi
 fi
 
-docker image prune -f
+$dockerBin image prune -f

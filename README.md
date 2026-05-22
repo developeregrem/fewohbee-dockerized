@@ -6,12 +6,14 @@ This docker compose setup is part of the [fewohbee guesthouse administration too
 
 | Service | Image | Description |
 |---------|-------|-------------|
-| `web` | [fewohbee-web](https://github.com/developeregrem/fewohbee-web) | Web server |
-| `php` | [fewohbee-phpfpm](https://github.com/developeregrem/fewohbee-phpfpm) | PHP 8 FPM – clones and runs the app on first start |
-| `cron` | [fewohbee-phpcli](https://github.com/developeregrem/fewohbee-phpfpm) | PHP CLI for scheduled tasks |
+| `web` | `ghcr.io/developeregrem/fewohbee-nginx` | nginx web server (app assets baked in) |
+| `php` | `ghcr.io/developeregrem/fewohbee-phpfpm` | PHP 8 FPM with the app pre-built |
+| `cron` | `ghcr.io/developeregrem/fewohbee-cli` | PHP CLI + crond for scheduled tasks |
 | `db` | [mariadb](https://hub.docker.com/_/mariadb) | Database |
 | `redis` | [redis](https://hub.docker.com/_/redis) | In-memory cache |
-| `acme` | [fewohbee-acme](https://github.com/developeregrem/fewohbee-acme) | SSL certificate management (Let's Encrypt or self-signed) |
+| `acme` | `developeregrem/fewohbee-acme` | SSL certificate management (Let's Encrypt or self-signed) |
+
+The images are versioned via the `FEWOHBEE_VERSION` variable in `.env` (default: `latest`). Pin to a specific release (`4.6.0`), branch (`branch-feature-x`) or debug build (`4.6.0-debug`).
 
 ## Configuration
 
@@ -72,16 +74,16 @@ Configure the exposed HTTP port via `LISTEN_PORT` in `.env` (default: `80`).
 
 ## First-run initialisation
 
-After starting the stack, the PHP container clones the app and installs dependencies (~2 minutes). Monitor progress:
+The full stack reaches a healthy state in roughly 30–60 seconds on a typical server (db takes ~10–15 s to initialize, php-fpm boots and runs Doctrine migrations afterwards). The app code is pre-built into the image — no runtime clone. Wait until the `php` container is reported as `healthy`:
 
 ```sh
-docker compose logs -f php
+docker compose ps
 ```
 
-Once `ready to handle connections` appears, run once to create the first admin user:
+Then run once to create the first admin user, load base templates and optionally sample data:
 
 ```sh
-docker compose exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
+docker compose exec --user www-data php /bin/sh -c "php bin/console app:first-run"
 ```
 
 ## Updates
@@ -93,7 +95,27 @@ chmod +x update-docker.sh
 
 The script pulls new images, restarts the stack and automatically syncs any new environment variables into `.env` and both compose files. New variables should be reviewed and adjusted after the update.
 
+### Updating from a legacy install
+
+When upgrading from an older `developeregrem/fewohbee-*` Docker Hub setup (with the runtime git clone), the new compose file includes a one-shot `uploads-migration` init container. It runs automatically on **every** `docker compose up` — no matter whether you trigger it through `update-docker.sh`, Portainer's stack redeploy, or plain `docker compose` on Windows. It copies your user uploads from the legacy `feb-data` volume into the new `uploads-export` and `uploads-roomcat` volumes once, then exits. The legacy `feb-data` volume is kept intact for rollback — you can remove it manually after verifying everything works:
+
+```sh
+docker volume rm fewohbee-dockerized_feb-data
+```
+
+## Debug builds
+
+Each release has a corresponding `-debug` image with xdebug and dev dependencies. To temporarily switch the `php` service:
+
+```sh
+# in .env
+FEWOHBEE_VERSION=4.6.0-debug
+APP_ENV=dev
+```
+
+Then `docker compose up -d --force-recreate php`.
+
 ## Documentation
 
 Full setup and configuration documentation:
-[Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup) and  [Portainer-Setup](https://github.com/developeregrem/fewohbee/wiki/Portainer)
+[Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup) and [Portainer-Setup](https://github.com/developeregrem/fewohbee/wiki/Portainer)
