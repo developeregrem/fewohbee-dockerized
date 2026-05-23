@@ -79,11 +79,18 @@ if [ "$cronMode" = false ]; then
                 continue
             fi
 
-            # DB_SERVER_VERSION is hardcoded in docker-compose.yml, skip it
-            if [[ "$varName" == "DB_SERVER_VERSION" ]]; then
-                commentBuffer=""
-                continue
-            fi
+            # Some variables are intentionally NOT synced into dockerized .env:
+            #   DB_SERVER_VERSION  – pinned in docker-compose.yml
+            #   APP_ENV / APP_DEBUG / USE_REDIS_CACHE – baked into the image
+            #     (choice via FEWOHBEE_VERSION tag prod vs -debug); syncing them
+            #     would let users accidentally override the image identity and
+            #     mismatch cache/vendor configuration.
+            case "$varName" in
+                DB_SERVER_VERSION|APP_ENV|APP_DEBUG|USE_REDIS_CACHE)
+                    commentBuffer=""
+                    continue
+                    ;;
+            esac
 
             # Add if not already present in .env
             if ! grep -q "^${varName}=" .env; then

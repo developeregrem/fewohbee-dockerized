@@ -105,12 +105,11 @@ docker volume rm fewohbee-dockerized_feb-data
 
 ## Debug builds
 
-Each release has a corresponding `-debug` image with xdebug and dev dependencies. To temporarily switch the `php` service:
+Each release has a corresponding `-debug` image with xdebug and dev dependencies. The image carries its own `APP_ENV=dev` setting — you only need to switch the tag:
 
 ```sh
 # in .env
 FEWOHBEE_VERSION=4.6.0-debug
-APP_ENV=dev
 ```
 
 Then `docker compose up -d --force-recreate php`.

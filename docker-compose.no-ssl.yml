@@ -24,7 +24,7 @@ services:
         networks:
             - internal-network
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost/health/live || exit 1"]
+            test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health/live || exit 1"]
             interval: 10s
             timeout: 3s
             retries: 5
@@ -79,9 +79,7 @@ services:
             - TZ=${TZ}
             - DB_SERVER_VERSION=12.2.2-MariaDB
             - LOCALE=${LOCALE}
-            - APP_ENV=${APP_ENV}
             - APP_SECRET=${APP_SECRET}
-            - USE_REDIS_CACHE=${USE_REDIS_CACHE}
             - REDIS_IDX=${REDIS_IDX}
             - REDIS_HOST=${REDIS_HOST}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
@@ -121,9 +119,7 @@ services:
             - TZ=${TZ}
             - DB_SERVER_VERSION=12.2.2-MariaDB
             - LOCALE=${LOCALE}
-            - APP_ENV=${APP_ENV}
             - APP_SECRET=${APP_SECRET}
-            - USE_REDIS_CACHE=${USE_REDIS_CACHE}
             - REDIS_IDX=${REDIS_IDX}
             - REDIS_HOST=${REDIS_HOST}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}

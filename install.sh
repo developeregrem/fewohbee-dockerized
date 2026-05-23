@@ -139,21 +139,6 @@ then
     createCron "update-docker"
 fi
 
-########## setup symfony env ##########
-pveEnvDefault="prod"
-pveEnv=""
-while ! [[ "$pveEnv" =~ ^(prod|dev)$ ]]
-do
-    read -p "Do you want to run the tool in productive mode oder development mode (prod/dev) [$pveEnvDefault]:" pveEnv
-    pveEnv="${pveEnv:-${pveEnvDefault}}"
-done
-
-### prod (default in .env.dist) uses redis caching; dev switches to filesystem
-if [ "$pveEnv" == "dev" ]
-then
-    $(sed 's@USE_REDIS_CACHE=true@USE_REDIS_CACHE=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-fi
-
 ### select language ###
 pveLangDefault="de"
 pveLang=""
@@ -163,9 +148,8 @@ do
     pveLang="${pveLang:-${pveLangDefault}}"
 done
 
-$(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-echo "Setting up $pveEnv environment."
+echo "Setup uses the production image (fewohbee-phpfpm:latest). For development, set FEWOHBEE_VERSION=<version>-debug in .env after installation."
 
 echo "Generating secrets and passwords."
 mariadbRootPw=$(openssl rand -base64 32 | shasum | cut -f 1 -d " ")
