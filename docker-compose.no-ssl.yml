@@ -84,6 +84,7 @@ services:
             - REDIS_HOST=${REDIS_HOST}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
             - DATABASE_URL=${DATABASE_URL}
+            - MAIL_ENABLED=${MAIL_ENABLED:-true}
             - MAILER_DSN=${MAILER_DSN}
             - FROM_MAIL=${FROM_MAIL}
             - FROM_NAME=${FROM_NAME}
@@ -95,8 +96,8 @@ services:
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             - FRAME_ANCESTORS=${FRAME_ANCESTORS}
+            - HEALTH_TOKEN=${HEALTH_TOKEN:-}
             - RUN_MIGRATIONS=true
-            # new-vars-marker
         healthcheck:
             test: ["CMD-SHELL", "pgrep -f 'php-fpm: master' > /dev/null || exit 1"]
             interval: 10s
@@ -124,6 +125,7 @@ services:
             - REDIS_HOST=${REDIS_HOST}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
             - DATABASE_URL=${DATABASE_URL}
+            - MAIL_ENABLED=${MAIL_ENABLED:-true}
             - MAILER_DSN=${MAILER_DSN}
             - FROM_MAIL=${FROM_MAIL}
             - FROM_NAME=${FROM_NAME}
@@ -135,7 +137,7 @@ services:
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             - FRAME_ANCESTORS=${FRAME_ANCESTORS}
-            # new-vars-marker
+            - HEALTH_TOKEN=${HEALTH_TOKEN:-}
         restart: always
 
     db:
