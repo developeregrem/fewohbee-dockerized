@@ -91,7 +91,7 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
-            - FRAME_ANCESTORS=${FRAME_ANCESTORS}
+            - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
             - HEALTH_TOKEN=${HEALTH_TOKEN:-}
             - RUN_MIGRATIONS=true
         healthcheck:
@@ -132,7 +132,7 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
-            - FRAME_ANCESTORS=${FRAME_ANCESTORS}
+            - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
             - HEALTH_TOKEN=${HEALTH_TOKEN:-}
         restart: always
 
