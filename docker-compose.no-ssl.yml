@@ -97,6 +97,8 @@ services:
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
             - HEALTH_TOKEN=${HEALTH_TOKEN:-}
+            - STORAGE_ADAPTER=${STORAGE_ADAPTER:-local}
+            - GEO_DATABASE_URL=${GEO_DATABASE_URL:-}
             - RUN_MIGRATIONS=true
         healthcheck:
             test: ["CMD-SHELL", "pgrep -f 'php-fpm: master' > /dev/null || exit 1"]
@@ -138,6 +140,8 @@ services:
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
             - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
             - HEALTH_TOKEN=${HEALTH_TOKEN:-}
+            - STORAGE_ADAPTER=${STORAGE_ADAPTER:-local}
+            - GEO_DATABASE_URL=${GEO_DATABASE_URL:-}
         restart: always
 
     db:
