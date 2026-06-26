@@ -2,42 +2,89 @@
 # The web container listens on plain HTTP on LISTEN_PORT (default: 80).
 # No acme container — certificate management is handled by the external proxy.
 #
-# Usage: docker compose -f docker-compose.no-ssl.yml up -d
+# Usage: set COMPOSE_FILE=docker-compose.no-ssl.yml in .env, then `docker compose up -d`.
 
 services:
     web:
-        image: developeregrem/fewohbee-web:latest
+        image: ghcr.io/developeregrem/fewohbee-nginx:${FEWOHBEE_VERSION:-latest}
+        depends_on:
+            db:
+                condition: service_healthy
+            php:
+                condition: service_started
         ports:
             - ${LISTEN_PORT:-80}:80
         volumes:
-            - feb-data:/var/www/html:cached
+            - uploads-export:/var/www/html/public/resources/images/export
+            - uploads-roomcat:/var/www/html/public/resources/images/room-categories
         environment:
             - HOST_NAME=${HOST_NAME}
+            - PHP_FPM_HOST=php:9000
             - REVERSE_PROXY=true
         networks:
             - internal-network
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health/live || exit 1"]
+            interval: 10s
+            timeout: 3s
+            retries: 5
+            start_period: 30s
+            start_interval: 2s
         restart: always
 
+    # One-shot init container: migrates user uploads from the legacy
+    # feb-data volume (runtime git-clone era) into the new dedicated volumes.
+    # Idempotent — touches a .migrated marker on success and exits fast on
+    # subsequent runs. Runs on every `compose up`, so it works with any tool
+    # (Portainer, plain `docker compose`, Windows users without bash scripts).
+    uploads-migration:
+        image: alpine:latest
+        restart: "no"
+        volumes:
+            - feb-data:/legacy:ro
+            - uploads-export:/new-export
+            - uploads-roomcat:/new-roomcat
+        command: >
+            sh -c '
+            if [ -f /new-export/.migrated ]; then
+                echo "uploads-migration: already completed";
+                exit 0;
+            fi;
+            if [ -d /legacy/fewohbee/public/resources/images/export ]; then
+                echo "uploads-migration: copying legacy uploads ...";
+                cp -aT /legacy/fewohbee/public/resources/images/export/. /new-export/ 2>/dev/null || true;
+                cp -aT /legacy/fewohbee/public/resources/images/room-categories/. /new-roomcat/ 2>/dev/null || true;
+                echo "uploads-migration: done. Legacy feb-data volume kept for rollback.";
+            else
+                echo "uploads-migration: no legacy uploads found, fresh install";
+            fi;
+            touch /new-export/.migrated /new-roomcat/.migrated;
+            '
+        networks:
+            - internal-network
+
     php:
-        image: developeregrem/fewohbee-phpfpm:latest
+        image: ghcr.io/developeregrem/fewohbee-phpfpm:${FEWOHBEE_VERSION:-latest}
         depends_on:
             db:
                 condition: service_healthy
+            uploads-migration:
+                condition: service_completed_successfully
         volumes:
-            - feb-data:/var/www/html:cached
+            - uploads-export:/var/www/html/public/resources/images/export
+            - uploads-roomcat:/var/www/html/public/resources/images/room-categories
         networks:
             - internal-network
         environment:
             - TZ=${TZ}
             - DB_SERVER_VERSION=12.2.2-MariaDB
             - LOCALE=${LOCALE}
-            - FEWOHBEE_VERSION=${FEWOHBEE_VERSION}
-            - APP_ENV=${APP_ENV}
             - APP_SECRET=${APP_SECRET}
             - REDIS_IDX=${REDIS_IDX}
             - REDIS_HOST=${REDIS_HOST}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
             - DATABASE_URL=${DATABASE_URL}
+            - MAIL_ENABLED=${MAIL_ENABLED:-true}
             - MAILER_DSN=${MAILER_DSN}
             - FROM_MAIL=${FROM_MAIL}
             - FROM_NAME=${FROM_NAME}
@@ -48,29 +95,39 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
-            # new-vars-marker
+            - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
+            - HEALTH_TOKEN=${HEALTH_TOKEN:-}
+            - STORAGE_ADAPTER=${STORAGE_ADAPTER:-local}
+            - GEO_DATABASE_URL=${GEO_DATABASE_URL:-}
+            - RUN_MIGRATIONS=true
+        healthcheck:
+            test: ["CMD-SHELL", "pgrep -f 'php-fpm: master' > /dev/null || exit 1"]
+            interval: 10s
+            timeout: 3s
+            retries: 5
+            start_period: 60s
+            start_interval: 2s
         restart: always
 
     cron:
-        image: developeregrem/fewohbee-phpcli:latest
+        image: ghcr.io/developeregrem/fewohbee-cli:${FEWOHBEE_VERSION:-latest}
         depends_on:
             db:
                 condition: service_healthy
-        volumes:
-            - feb-data:/var/www/html:cached
+            php:
+                condition: service_healthy
         networks:
             - internal-network
         environment:
             - TZ=${TZ}
             - DB_SERVER_VERSION=12.2.2-MariaDB
             - LOCALE=${LOCALE}
-            - FEWOHBEE_VERSION=${FEWOHBEE_VERSION}
-            - APP_ENV=${APP_ENV}
             - APP_SECRET=${APP_SECRET}
             - REDIS_IDX=${REDIS_IDX}
             - REDIS_HOST=${REDIS_HOST}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
             - DATABASE_URL=${DATABASE_URL}
+            - MAIL_ENABLED=${MAIL_ENABLED:-true}
             - MAILER_DSN=${MAILER_DSN}
             - FROM_MAIL=${FROM_MAIL}
             - FROM_NAME=${FROM_NAME}
@@ -81,7 +138,10 @@ services:
             - PASSKEY_ENABLED=${PASSKEY_ENABLED}
             - WEB_HOST=${WEB_HOST}
             - TRUSTED_PROXIES=${TRUSTED_PROXIES}
-            # new-vars-marker
+            - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
+            - HEALTH_TOKEN=${HEALTH_TOKEN:-}
+            - STORAGE_ADAPTER=${STORAGE_ADAPTER:-local}
+            - GEO_DATABASE_URL=${GEO_DATABASE_URL:-}
         restart: always
 
     db:
@@ -121,5 +181,9 @@ networks:
 volumes:
     redis-vol:
     db-vol:
-    feb-data:
     db-backup-vol:
+    uploads-export:
+    uploads-roomcat:
+    # Legacy volume — only referenced by uploads-migration. Empty on fresh
+    # installs, contains the pre-migration code+uploads tree on upgrades.
+    feb-data:

@@ -139,21 +139,6 @@ then
     createCron "update-docker"
 fi
 
-########## setup symfony env ##########
-pveEnvDefault="prod"
-pveEnv=""
-while ! [[ "$pveEnv" =~ ^(prod|dev)$ ]]
-do
-    read -p "Do you want to run the tool in productive mode oder development mode (prod/dev) [$pveEnvDefault]:" pveEnv
-    pveEnv="${pveEnv:-${pveEnvDefault}}"
-done
-
-### when prod is used, use redis caching
-if [ "$pveEnv" == "prod" ]
-then
-    pveEnv="redis"
-fi
-
 ### select language ###
 pveLangDefault="de"
 pveLang=""
@@ -163,9 +148,8 @@ do
     pveLang="${pveLang:-${pveLangDefault}}"
 done
 
-$(sed 's@APP_ENV=prod@APP_ENV='"$pveEnv"'@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
 $(sed "s@LOCALE=de@LOCALE=$pveLang@g" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
-echo "Setting up $pveEnv environment."
+echo "Setup uses the production image (fewohbee-phpfpm:latest). For development, set FEWOHBEE_VERSION=<version>-debug in .env after installation."
 
 echo "Generating secrets and passwords."
 mariadbRootPw=$(openssl rand -base64 32 | shasum | cut -f 1 -d " ")
@@ -194,17 +178,24 @@ then
 fi
 
 ########## application setup ##########
-echo "Setting up application ..."
-echo "Pulling app dependencies and setting up the database (this will take some time)."
-# this check depends on the script entrypoint.sh from fewohbee-phpfpm image
-until [ "`$dockerComposeBin exec -T php /bin/sh -c 'cat /firstrun'`" == "1"  ]
-do
+echo "Waiting for the php container to become healthy ..."
+waited=0
+while true; do
+    health=$($dockerComposeBin ps --format '{{.Service}} {{.Health}}' 2>/dev/null | grep '^php ' | awk '{print $2}')
+    if [ "$health" = "healthy" ]; then
+        break
+    fi
+    if [ $waited -ge 180 ]; then
+        echo "Warning: php container did not become healthy within 180s. Continuing anyway."
+        break
+    fi
     echo "still waiting ..."
-    sleep 10
+    sleep 5
+    waited=$((waited + 5))
 done
 
 ########## init tool ##########
-$dockerComposeBin exec --user www-data php /bin/sh -c "php fewohbee/bin/console app:first-run"
+$dockerComposeBin exec --user www-data php /bin/sh -c "php bin/console app:first-run"
 
 echo "done"
 if [ "$ssl" == "reverse-proxy" ]
