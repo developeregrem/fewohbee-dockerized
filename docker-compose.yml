@@ -153,6 +153,7 @@ services:
             MARIADB_DATABASE: ${MARIADB_DATABASE}
             MYSQL_BACKUP_PASSWORD: ${MYSQL_BACKUP_PASSWORD}
             MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER}
+            MARIADB_AUTO_UPGRADE: ${MARIADB_AUTO_UPGRADE:-1}
         healthcheck:
             test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
             start_period: 40s
