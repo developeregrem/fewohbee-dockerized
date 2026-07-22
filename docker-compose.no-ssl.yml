@@ -81,7 +81,12 @@ services:
             - LOCALE=${LOCALE}
             - APP_SECRET=${APP_SECRET}
             - REDIS_IDX=${REDIS_IDX}
+            - REDIS_SYSTEM_IDX=${REDIS_SYSTEM_IDX:-${REDIS_IDX}}
+            - REDIS_SESSION_IDX=${REDIS_SESSION_IDX:-${REDIS_IDX}}
             - REDIS_HOST=${REDIS_HOST}
+            - REDIS_PORT=${REDIS_PORT:-6379}
+            - REDIS_PREFIX=${REDIS_PREFIX:-fewohbee_}
+            - SESSION_MAX_LIFETIME=${SESSION_MAX_LIFETIME:-1440}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
             - DATABASE_URL=${DATABASE_URL}
             - MAIL_ENABLED=${MAIL_ENABLED:-true}
@@ -124,7 +129,12 @@ services:
             - LOCALE=${LOCALE}
             - APP_SECRET=${APP_SECRET}
             - REDIS_IDX=${REDIS_IDX}
+            - REDIS_SYSTEM_IDX=${REDIS_SYSTEM_IDX:-${REDIS_IDX}}
+            - REDIS_SESSION_IDX=${REDIS_SESSION_IDX:-${REDIS_IDX}}
             - REDIS_HOST=${REDIS_HOST}
+            - REDIS_PORT=${REDIS_PORT:-6379}
+            - REDIS_PREFIX=${REDIS_PREFIX:-fewohbee_}
+            - SESSION_MAX_LIFETIME=${SESSION_MAX_LIFETIME:-1440}
             - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
             - DATABASE_URL=${DATABASE_URL}
             - MAIL_ENABLED=${MAIL_ENABLED:-true}
