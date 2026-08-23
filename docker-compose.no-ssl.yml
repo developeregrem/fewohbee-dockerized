@@ -121,6 +121,8 @@ services:
                 condition: service_healthy
             php:
                 condition: service_healthy
+        volumes:
+            - uploads-export:/var/www/html/public/resources/images/export:ro
         networks:
             - internal-network
         environment:
