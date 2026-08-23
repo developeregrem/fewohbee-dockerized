@@ -48,17 +48,18 @@ services:
             sh -c '
             if [ -f /new-export/.migrated ]; then
                 echo "uploads-migration: already completed";
-                exit 0;
-            fi;
-            if [ -d /legacy/fewohbee/public/resources/images/export ]; then
-                echo "uploads-migration: copying legacy uploads ...";
-                cp -aT /legacy/fewohbee/public/resources/images/export/. /new-export/ 2>/dev/null || true;
-                cp -aT /legacy/fewohbee/public/resources/images/room-categories/. /new-roomcat/ 2>/dev/null || true;
-                echo "uploads-migration: done. Legacy feb-data volume kept for rollback.";
             else
-                echo "uploads-migration: no legacy uploads found, fresh install";
+                if [ -d /legacy/fewohbee/public/resources/images/export ]; then
+                    echo "uploads-migration: copying legacy uploads ...";
+                    cp -aT /legacy/fewohbee/public/resources/images/export/. /new-export/ 2>/dev/null || true;
+                    cp -aT /legacy/fewohbee/public/resources/images/room-categories/. /new-roomcat/ 2>/dev/null || true;
+                    echo "uploads-migration: done. Legacy feb-data volume kept for rollback.";
+                else
+                    echo "uploads-migration: no legacy uploads found, fresh install";
+                fi;
+                touch /new-export/.migrated /new-roomcat/.migrated;
             fi;
-            touch /new-export/.migrated /new-roomcat/.migrated;
+            chown -R 82:82 /new-export /new-roomcat;
             '
         networks:
             - internal-network
