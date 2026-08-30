@@ -28,17 +28,46 @@ isPluginAvailable() {
 }
 
 createCron() {
-    if [ ! -d "/etc/cron.d/" ]; then
-        echo "Could not create cronjob. Path /etc/cron.d/ does not exists."
+    local cronDirectory="${2:-/etc/cron.d}"
+    local cronName="$1"
+    local sourceCron="$PWD/cron.d/$cronName"
+    local targetCron="$cronDirectory/$cronName"
+
+    if [ ! -d "$cronDirectory" ]; then
+        echo "Could not create cronjob. Path $cronDirectory does not exist."
         return 1
     fi
-    targetCron="/etc/cron.d/$1"
-    ln -s $PWD/cron.d/$1 $targetCron
-    if [ $? -ne 0 ]
-    then
-        echo "Could not create symlink $targetCron. Do you have the permission to write there?"
-        exit 1
+
+    if [ ! -f "$sourceCron" ]; then
+        echo "Could not create cronjob. Source file $sourceCron does not exist."
+        return 1
     fi
+
+    if [ -L "$targetCron" ]; then
+        if [ "$(readlink "$targetCron")" = "$sourceCron" ]; then
+            echo "Cronjob $targetCron already exists."
+            return 0
+        fi
+
+        if ln -sfn "$sourceCron" "$targetCron"; then
+            echo "Cronjob symlink $targetCron was updated."
+            return 0
+        fi
+
+        echo "Could not update symlink $targetCron. Do you have permission to write there?"
+        return 1
+    fi
+
+    if [ -e "$targetCron" ]; then
+        echo "Cronjob target $targetCron already exists and is not a symlink. Keeping it unchanged."
+        return 0
+    fi
+
+    if ! ln -s "$sourceCron" "$targetCron"; then
+        echo "Could not create symlink $targetCron. Do you have permission to write there?"
+        return 1
+    fi
+
     echo "A cronjob was created in $targetCron."
 }
 
