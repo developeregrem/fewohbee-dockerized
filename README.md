@@ -93,7 +93,7 @@ chmod +x update-docker.sh
 ./update-docker.sh
 ```
 
-The script pulls new images, restarts the stack and automatically syncs any new environment variables into `.env` and both compose files. New variables should be reviewed and adjusted after the update.
+The script pulls the current Compose files and images, restarts the stack and automatically adds new variables from `.env.dist` to the local `.env`. New variables should be reviewed and adjusted after the update.
 
 ### Updating from a legacy install
 
