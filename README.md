@@ -56,6 +56,8 @@ sudo ./install.sh
 
 For servers with direct internet access. Manages SSL certificates automatically via the `acme` container (self-signed or Let's Encrypt).
 
+Configure the exposed HTTP and HTTPS ports via `LISTEN_PORT` (default: `80`) and `HTTPS_LISTEN_PORT` (default: `443`) in `.env`.
+
 ```sh
 docker compose up -d
 ```
@@ -70,7 +72,7 @@ Set `COMPOSE_FILE=docker-compose.no-ssl.yml` in `.env` (done automatically by th
 docker compose up -d
 ```
 
-Configure the exposed HTTP port via `LISTEN_PORT` in `.env` (default: `80`).
+Configure the exposed HTTP port via `LISTEN_PORT` in `.env` (default: `80`). `HTTPS_LISTEN_PORT` is not used in this mode because TLS is terminated by the reverse proxy.
 
 ## First-run initialisation
 
