@@ -37,11 +37,11 @@ docker run --rm -it -v $(pwd):/config developeregrem/fewohbee-setup
 docker run --rm -it -v ${PWD}:/config developeregrem/fewohbee-setup
 ```
 
-The container asks a few questions (hostname, SSL mode, language), generates passwords and writes `.env`.
+The container asks a few questions (hostname, SSL mode, host ports, language), generates passwords and writes `.env`.
 
 ### Option B – install.sh (Linux only)
 
-A Bash script that additionally sets up optional cron jobs for database backups and automatic updates:
+A Bash script that checks the default host ports and additionally sets up optional cron jobs for database backups and automatic updates:
 
 ```sh
 git clone https://github.com/developeregrem/fewohbee-dockerized.git

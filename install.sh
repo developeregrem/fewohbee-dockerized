@@ -71,6 +71,104 @@ createCron() {
     echo "A cronjob was created in $targetCron."
 }
 
+isValidPort() {
+    local port="$1"
+
+    [[ "$port" =~ ^[0-9]+$ ]] && [ "${#port}" -le 5 ] && ((10#$port >= 1 && 10#$port <= 65535))
+}
+
+# Returns 0 when a TCP port is in use and 1 when it is free. Docker mappings
+# and socket inspection tools are preferred; Bash TCP connections are the fallback.
+isPortInUse() {
+    local port="$1"
+    local listeners=""
+    local publishedPorts=""
+
+    if [ -n "$dockerBin" ] && publishedPorts=$("$dockerBin" ps --format '{{.Ports}}' 2>/dev/null); then
+        if printf '%s\n' "$publishedPorts" | awk -v port="$port" '
+            index($0, ":" port "->") { found = 1 }
+            END { exit(found ? 0 : 1) }
+        '; then
+            return 0
+        fi
+    fi
+
+    if command -v ss > /dev/null 2>&1 && listeners=$(ss -H -ltn 2>/dev/null); then
+        printf '%s\n' "$listeners" | awk -v port="$port" '
+            $4 ~ ("[.:]" port "$") { found = 1 }
+            END { exit(found ? 0 : 1) }
+        '
+        return $?
+    fi
+
+    if command -v lsof > /dev/null 2>&1; then
+        lsof -nP -iTCP:"$port" -sTCP:LISTEN -t > /dev/null 2>&1
+        return $?
+    fi
+
+    if command -v netstat > /dev/null 2>&1 && listeners=$(netstat -an 2>/dev/null); then
+        printf '%s\n' "$listeners" | awk -v port="$port" '
+            toupper($0) ~ /LISTEN/ && $4 ~ ("[.:]" port "$") { found = 1 }
+            END { exit(found ? 0 : 1) }
+        '
+        return $?
+    fi
+
+    if (: > "/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
+        return 0
+    fi
+
+    if (: > "/dev/tcp/::1/$port") 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+configureHostPort() {
+    local resultVariable="$1"
+    local label="$2"
+    local defaultPort="$3"
+    local alternativePort="$4"
+    local excludedPort="${5:-}"
+    local selectedPort=""
+    local checkStatus=0
+
+    isPortInUse "$defaultPort" || checkStatus=$?
+    if [ "$checkStatus" -eq 1 ]; then
+        printf -v "$resultVariable" '%s' "$defaultPort"
+        echo "$label port $defaultPort is available."
+        return 0
+    fi
+
+    echo "$label port $defaultPort is already in use."
+
+    while true; do
+        read -r -p "Please enter an available host port for $label [$alternativePort]:" selectedPort
+        selectedPort="${selectedPort:-$alternativePort}"
+
+        if ! isValidPort "$selectedPort"; then
+            echo "Please enter a port between 1 and 65535."
+            continue
+        fi
+
+        if [ -n "$excludedPort" ] && [ "$selectedPort" = "$excludedPort" ]; then
+            echo "$label must use a different port than $excludedPort."
+            continue
+        fi
+
+        checkStatus=0
+        isPortInUse "$selectedPort" || checkStatus=$?
+        if [ "$checkStatus" -eq 0 ]; then
+            echo "Port $selectedPort is already in use. Please choose another port."
+            continue
+        fi
+
+        printf -v "$resultVariable" '%s' "$selectedPort"
+        return 0
+    done
+}
+
 checkRequirements(){
     isAvailable "openssl"
     opensslBin=$(which openssl)
@@ -141,6 +239,28 @@ if [ "$ssl" == "reverse-proxy" ]
 then
     $(sed 's@SELF_SIGNED=true@SELF_SIGNED=false@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
     $(sed 's@COMPOSE_FILE=docker-compose.yml:docker-compose.override.yml@COMPOSE_FILE=docker-compose.no-ssl.yml:docker-compose.override.yml@g' $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTmp)
+fi
+
+########## setup host ports ##########
+listenPort=80
+httpsListenPort=443
+configureHostPort listenPort "HTTP (LISTEN_PORT)" 80 8080
+
+if [ "$ssl" != "reverse-proxy" ]; then
+    configureHostPort httpsListenPort "HTTPS (HTTPS_LISTEN_PORT)" 443 8443 "$listenPort"
+fi
+
+sed "s@^LISTEN_PORT=.*@LISTEN_PORT=$listenPort@" "$envTmp" > "$envTmp.tmp" && mv "$envTmp.tmp" "$envTmp"
+sed "s@^HTTPS_LISTEN_PORT=.*@HTTPS_LISTEN_PORT=$httpsListenPort@" "$envTmp" > "$envTmp.tmp" && mv "$envTmp.tmp" "$envTmp"
+
+if [ "$ssl" == "letsencrypt" ] && [ "$listenPort" != "80" ]; then
+    echo "Warning: Let's Encrypt HTTP-01 validation requires public port 80."
+    echo "Forward public port 80 to host port $listenPort or certificate issuance will fail."
+fi
+
+if [ "$ssl" == "letsencrypt" ] && [ "$httpsListenPort" != "443" ]; then
+    echo "Note: Browsers use HTTPS port 443 by default."
+    echo "Forward public port 443 to host port $httpsListenPort or include the port in the URL."
 fi
 
 ########## setup cron ##########
