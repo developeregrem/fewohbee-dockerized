@@ -4,6 +4,32 @@
 #
 # Usage: set COMPOSE_FILE=docker-compose.no-ssl.yml in .env, then `docker compose up -d`.
 
+x-fewohbee-environment: &fewohbee-environment
+    TZ: ${TZ}
+    DB_SERVER_VERSION: 12.2.2-MariaDB
+    LOCALE: ${LOCALE}
+    APP_SECRET: ${APP_SECRET}
+    REDIS_IDX: ${REDIS_IDX}
+    REDIS_SYSTEM_IDX: ${REDIS_SYSTEM_IDX:-${REDIS_IDX}}
+    REDIS_SESSION_IDX: ${REDIS_SESSION_IDX:-${REDIS_IDX}}
+    REDIS_HOST: ${REDIS_HOST}
+    REDIS_PORT: ${REDIS_PORT:-6379}
+    REDIS_PREFIX: ${REDIS_PREFIX:-fewohbee_}
+    SESSION_MAX_LIFETIME: ${SESSION_MAX_LIFETIME:-1440}
+    USE_PASSWORD_BLACKLIST: ${USE_PASSWORD_BLACKLIST}
+    DATABASE_URL: ${DATABASE_URL}
+    MAIL_ENABLED: ${MAIL_ENABLED:-true}
+    MAILER_DSN: ${MAILER_DSN}
+    FROM_MAIL: ${FROM_MAIL}
+    FROM_NAME: ${FROM_NAME}
+    RETURN_PATH: ${RETURN_PATH}
+    MAIL_COPY: ${MAIL_COPY}
+    TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+    FRAME_ANCESTORS: ${FRAME_ANCESTORS:-}
+    HEALTH_TOKEN: ${HEALTH_TOKEN:-}
+    STORAGE_ADAPTER: ${STORAGE_ADAPTER:-local}
+    GEO_DATABASE_URL: ${GEO_DATABASE_URL:-}
+
 services:
     web:
         image: ghcr.io/developeregrem/fewohbee-nginx:${FEWOHBEE_VERSION:-latest}
@@ -79,34 +105,21 @@ services:
         networks:
             - internal-network
         environment:
-            - TZ=${TZ}
-            - DB_SERVER_VERSION=12.2.2-MariaDB
-            - LOCALE=${LOCALE}
-            - APP_SECRET=${APP_SECRET}
-            - REDIS_IDX=${REDIS_IDX}
-            - REDIS_SYSTEM_IDX=${REDIS_SYSTEM_IDX:-${REDIS_IDX}}
-            - REDIS_SESSION_IDX=${REDIS_SESSION_IDX:-${REDIS_IDX}}
-            - REDIS_HOST=${REDIS_HOST}
-            - REDIS_PORT=${REDIS_PORT:-6379}
-            - REDIS_PREFIX=${REDIS_PREFIX:-fewohbee_}
-            - SESSION_MAX_LIFETIME=${SESSION_MAX_LIFETIME:-1440}
-            - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
-            - DATABASE_URL=${DATABASE_URL}
-            - MAIL_ENABLED=${MAIL_ENABLED:-true}
-            - MAILER_DSN=${MAILER_DSN}
-            - FROM_MAIL=${FROM_MAIL}
-            - FROM_NAME=${FROM_NAME}
-            - RETURN_PATH=${RETURN_PATH}
-            - MAIL_COPY=${MAIL_COPY}
-            - RELYING_PARTY_ID=${RELYING_PARTY_ID}
-            - RELYING_PARTY_NAME=${RELYING_PARTY_NAME}
-            - PASSKEY_ENABLED=${PASSKEY_ENABLED}
-            - TRUSTED_PROXIES=${TRUSTED_PROXIES}
-            - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
-            - HEALTH_TOKEN=${HEALTH_TOKEN:-}
-            - STORAGE_ADAPTER=${STORAGE_ADAPTER:-local}
-            - GEO_DATABASE_URL=${GEO_DATABASE_URL:-}
-            - RUN_MIGRATIONS=true
+            <<: *fewohbee-environment
+            RELYING_PARTY_ID: ${RELYING_PARTY_ID}
+            RELYING_PARTY_NAME: ${RELYING_PARTY_NAME}
+            PASSKEY_ENABLED: ${PASSKEY_ENABLED}
+            OIDC_ENABLED: ${OIDC_ENABLED:-false}
+            OIDC_ISSUER: ${OIDC_ISSUER:-}
+            OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+            OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+            OIDC_SCOPES: ${OIDC_SCOPES:-openid profile email}
+            OIDC_BUTTON_LABEL: ${OIDC_BUTTON_LABEL:-}
+            OIDC_USER_MATCHING: ${OIDC_USER_MATCHING:-email}
+            OIDC_REQUIRE_VERIFIED_EMAIL: ${OIDC_REQUIRE_VERIFIED_EMAIL:-true}
+            OIDC_ENFORCE: ${OIDC_ENFORCE:-false}
+            OIDC_END_SESSION: ${OIDC_END_SESSION:-false}
+            RUN_MIGRATIONS: "true"
         healthcheck:
             test: ["CMD-SHELL", "pgrep -f 'php-fpm: master' > /dev/null || exit 1"]
             interval: 10s
@@ -128,34 +141,7 @@ services:
             - uploads-fonts:/var/www/html/var/storage/fonts:ro
         networks:
             - internal-network
-        environment:
-            - TZ=${TZ}
-            - DB_SERVER_VERSION=12.2.2-MariaDB
-            - LOCALE=${LOCALE}
-            - APP_SECRET=${APP_SECRET}
-            - REDIS_IDX=${REDIS_IDX}
-            - REDIS_SYSTEM_IDX=${REDIS_SYSTEM_IDX:-${REDIS_IDX}}
-            - REDIS_SESSION_IDX=${REDIS_SESSION_IDX:-${REDIS_IDX}}
-            - REDIS_HOST=${REDIS_HOST}
-            - REDIS_PORT=${REDIS_PORT:-6379}
-            - REDIS_PREFIX=${REDIS_PREFIX:-fewohbee_}
-            - SESSION_MAX_LIFETIME=${SESSION_MAX_LIFETIME:-1440}
-            - USE_PASSWORD_BLACKLIST=${USE_PASSWORD_BLACKLIST}
-            - DATABASE_URL=${DATABASE_URL}
-            - MAIL_ENABLED=${MAIL_ENABLED:-true}
-            - MAILER_DSN=${MAILER_DSN}
-            - FROM_MAIL=${FROM_MAIL}
-            - FROM_NAME=${FROM_NAME}
-            - RETURN_PATH=${RETURN_PATH}
-            - MAIL_COPY=${MAIL_COPY}
-            - RELYING_PARTY_ID=${RELYING_PARTY_ID}
-            - RELYING_PARTY_NAME=${RELYING_PARTY_NAME}
-            - PASSKEY_ENABLED=${PASSKEY_ENABLED}
-            - TRUSTED_PROXIES=${TRUSTED_PROXIES}
-            - FRAME_ANCESTORS=${FRAME_ANCESTORS:-}
-            - HEALTH_TOKEN=${HEALTH_TOKEN:-}
-            - STORAGE_ADAPTER=${STORAGE_ADAPTER:-local}
-            - GEO_DATABASE_URL=${GEO_DATABASE_URL:-}
+        environment: *fewohbee-environment
         restart: always
 
     db:

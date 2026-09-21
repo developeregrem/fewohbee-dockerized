@@ -37,11 +37,11 @@ docker run --rm -it -v $(pwd):/config developeregrem/fewohbee-setup
 docker run --rm -it -v ${PWD}:/config developeregrem/fewohbee-setup
 ```
 
-The container asks a few questions (hostname, SSL mode, language), generates passwords and writes `.env`.
+The container asks a few questions (hostname, SSL mode, host ports, language), generates passwords and writes `.env`.
 
 ### Option B – install.sh (Linux only)
 
-A Bash script that additionally sets up optional cron jobs for database backups and automatic updates:
+A Bash script that checks the default host ports and additionally sets up optional cron jobs for database backups and automatic updates:
 
 ```sh
 git clone https://github.com/developeregrem/fewohbee-dockerized.git
@@ -55,6 +55,8 @@ sudo ./install.sh
 ### Standard mode (with SSL)
 
 For servers with direct internet access. Manages SSL certificates automatically via the `acme` container (self-signed or Let's Encrypt).
+
+Configure the exposed HTTP and HTTPS ports via `LISTEN_PORT` (default: `80`) and `HTTPS_LISTEN_PORT` (default: `443`) in `.env`.
 
 ```sh
 docker compose up -d
@@ -70,7 +72,7 @@ Set `COMPOSE_FILE=docker-compose.no-ssl.yml` in `.env` (done automatically by th
 docker compose up -d
 ```
 
-Configure the exposed HTTP port via `LISTEN_PORT` in `.env` (default: `80`).
+Configure the exposed HTTP port via `LISTEN_PORT` in `.env` (default: `80`). `HTTPS_LISTEN_PORT` is not used in this mode because TLS is terminated by the reverse proxy.
 
 ## First-run initialisation
 
@@ -93,7 +95,7 @@ chmod +x update-docker.sh
 ./update-docker.sh
 ```
 
-The script pulls new images, restarts the stack and automatically syncs any new environment variables into `.env` and both compose files. New variables should be reviewed and adjusted after the update.
+The script pulls the current Compose files and images, restarts the stack and automatically adds new variables from `.env.dist` to the local `.env`. New variables should be reviewed and adjusted after the update.
 
 ### Custom PDF fonts
 
