@@ -95,6 +95,10 @@ chmod +x update-docker.sh
 
 The script pulls new images, restarts the stack and automatically syncs any new environment variables into `.env` and both compose files. New variables should be reviewed and adjusted after the update.
 
+### Custom PDF fonts
+
+Administrators can upload TTF and compatible OTF fonts from the template overview in FewohBee. The files are stored in the `uploads-fonts` named volume, shared read-only with the cron container and retained when application containers are replaced. Include this volume in backups when custom fonts are in use.
+
 ### Updating from a legacy install
 
 When upgrading from an older `developeregrem/fewohbee-*` Docker Hub setup (with the runtime git clone), the new compose file includes a one-shot `uploads-migration` init container. It runs automatically on **every** `docker compose up` — no matter whether you trigger it through `update-docker.sh`, Portainer's stack redeploy, or plain `docker compose` on Windows. It copies your user uploads from the legacy `feb-data` volume into the new `uploads-export` and `uploads-roomcat` volumes once, then exits. The legacy `feb-data` volume is kept intact for rollback — you can remove it manually after verifying everything works:

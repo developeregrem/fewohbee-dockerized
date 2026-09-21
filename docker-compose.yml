@@ -40,6 +40,7 @@ services:
             - feb-data:/legacy:ro
             - uploads-export:/new-export
             - uploads-roomcat:/new-roomcat
+            - uploads-fonts:/new-fonts
         command: >
             sh -c '
             if [ -f /new-export/.migrated ]; then
@@ -55,7 +56,7 @@ services:
                 fi;
                 touch /new-export/.migrated /new-roomcat/.migrated;
             fi;
-            chown -R 82:82 /new-export /new-roomcat;
+            chown -R 82:82 /new-export /new-roomcat /new-fonts;
             '
         networks:
             - internal-network
@@ -70,6 +71,7 @@ services:
         volumes:
             - uploads-export:/var/www/html/public/resources/images/export
             - uploads-roomcat:/var/www/html/public/resources/images/room-categories
+            - uploads-fonts:/var/www/html/var/storage/fonts
         networks:
             - internal-network
         environment:
@@ -119,6 +121,7 @@ services:
                 condition: service_healthy
         volumes:
             - uploads-export:/var/www/html/public/resources/images/export:ro
+            - uploads-fonts:/var/www/html/var/storage/fonts:ro
         networks:
             - internal-network
         environment:
@@ -213,6 +216,7 @@ volumes:
     acme-challenge:
     uploads-export:
     uploads-roomcat:
+    uploads-fonts:
     # Legacy volume — only referenced by uploads-migration. Empty on fresh
     # installs, contains the pre-migration code+uploads tree on upgrades.
     feb-data:
