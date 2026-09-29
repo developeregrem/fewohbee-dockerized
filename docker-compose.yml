@@ -2,6 +2,7 @@ x-fewohbee-environment: &fewohbee-environment
     TZ: ${TZ}
     DB_SERVER_VERSION: 12.2.2-MariaDB
     LOCALE: ${LOCALE}
+    PUBLIC_BASE_URI: ${PUBLIC_BASE_URI:-}
     APP_SECRET: ${APP_SECRET}
     REDIS_IDX: ${REDIS_IDX}
     REDIS_SYSTEM_IDX: ${REDIS_SYSTEM_IDX:-${REDIS_IDX}}
