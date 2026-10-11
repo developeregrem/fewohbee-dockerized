@@ -1,0 +1,26 @@
+# Local overrides for this installation.
+#
+# docker-compose.override.yml is created from this template by install.sh, the setup
+# container and update-docker.sh. It is not tracked by git, so your changes survive
+# updates and never block update-docker.sh. Do not edit this .dist file itself.
+#
+# The file is loaded via COMPOSE_FILE in .env and must therefore exist, even if it
+# contains no overrides. Portainer and Arcane do not use it.
+#
+# Example: replace the nginx site configuration of the web service.
+#
+# services:
+#     web:
+#         volumes:
+#             - ./custom/site.conf:/etc/nginx/conf.d/site.conf:ro
+#
+# Example: load additional PHP settings from ./custom/php.
+#
+# services:
+#     php:
+#         environment:
+#             PHP_INI_SCAN_DIR: ":/usr/local/etc/php/custom.d"
+#         volumes:
+#             - ./custom/php:/usr/local/etc/php/custom.d:ro
+
+services: {}

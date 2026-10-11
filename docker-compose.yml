@@ -3,7 +3,7 @@ x-fewohbee-environment: &fewohbee-environment
     DB_SERVER_VERSION: 12.2.2-MariaDB
     LOCALE: ${LOCALE}
     PUBLIC_BASE_URI: ${PUBLIC_BASE_URI:-}
-    APP_SECRET: ${APP_SECRET}
+    APP_SECRET: ${APP_SECRET:?see .env.dist}
     REDIS_IDX: ${REDIS_IDX}
     REDIS_SYSTEM_IDX: ${REDIS_SYSTEM_IDX:-${REDIS_IDX}}
     REDIS_SESSION_IDX: ${REDIS_SESSION_IDX:-${REDIS_IDX}}
@@ -12,7 +12,7 @@ x-fewohbee-environment: &fewohbee-environment
     REDIS_PREFIX: ${REDIS_PREFIX:-fewohbee_}
     SESSION_MAX_LIFETIME: ${SESSION_MAX_LIFETIME:-1440}
     USE_PASSWORD_BLACKLIST: ${USE_PASSWORD_BLACKLIST}
-    DATABASE_URL: ${DATABASE_URL}
+    DATABASE_URL: ${DATABASE_URL:?see .env.dist}
     MAIL_ENABLED: ${MAIL_ENABLED:-true}
     MAILER_DSN: ${MAILER_DSN}
     FROM_MAIL: ${FROM_MAIL}
@@ -42,7 +42,7 @@ services:
             - uploads-export:/var/www/html/public/resources/images/export
             - uploads-roomcat:/var/www/html/public/resources/images/room-categories
         environment:
-            - HOST_NAME=${HOST_NAME}
+            - HOST_NAME=${HOST_NAME:?see .env.dist}
             - PHP_FPM_HOST=php:9000
         networks:
             - internal-network
@@ -148,10 +148,10 @@ services:
              - db-vol:/var/lib/mysql:cached
              - db-backup-vol:/dbbackup:cached
         environment:
-            MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-            MARIADB_USER: ${MARIADB_USER}
-            MARIADB_PASSWORD: ${MARIADB_PASSWORD}
-            MARIADB_DATABASE: ${MARIADB_DATABASE}
+            MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?see .env.dist}
+            MARIADB_USER: ${MARIADB_USER:?see .env.dist}
+            MARIADB_PASSWORD: ${MARIADB_PASSWORD:?see .env.dist}
+            MARIADB_DATABASE: ${MARIADB_DATABASE:?see .env.dist}
             MYSQL_BACKUP_PASSWORD: ${MYSQL_BACKUP_PASSWORD}
             MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER}
             MARIADB_AUTO_UPGRADE: ${MARIADB_AUTO_UPGRADE:-1}
@@ -161,6 +161,35 @@ services:
             interval: 10s
             timeout: 5s
             retries: 15
+        networks:
+            - internal-network
+
+    # One-shot init container: creates the read-only database user for backups
+    # (MYSQL_BACKUP_USER) if it does not exist yet. Runs on every `compose up`
+    # and needs no files from the host, so it works the same with plain
+    # docker compose, Portainer and Arcane.
+    db-init:
+        image: mariadb:12.2
+        restart: "no"
+        depends_on:
+            db:
+                condition: service_healthy
+        environment:
+            MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+            MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER:-}
+            MYSQL_BACKUP_PASSWORD: ${MYSQL_BACKUP_PASSWORD:-}
+        entrypoint: ["/bin/sh", "-c"]
+        command:
+            - |
+              if [ -z "$$MYSQL_BACKUP_USER" ] || [ -z "$$MYSQL_BACKUP_PASSWORD" ]; then
+                  echo "db-init: MYSQL_BACKUP_USER or MYSQL_BACKUP_PASSWORD not set, skipping backup user";
+                  exit 0;
+              fi
+              mariadb -h db -u root -p"$$MARIADB_ROOT_PASSWORD" <<SQL || exit 1
+              CREATE USER IF NOT EXISTS '$$MYSQL_BACKUP_USER'@'%' IDENTIFIED BY '$$MYSQL_BACKUP_PASSWORD';
+              GRANT LOCK TABLES, SELECT ON *.* TO '$$MYSQL_BACKUP_USER'@'%';
+              SQL
+              echo "db-init: backup user $$MYSQL_BACKUP_USER is ready"
         networks:
             - internal-network
 

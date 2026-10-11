@@ -316,6 +316,11 @@ $(sed "s@db_password@$mariadbPw@" $envTmp > $envTmp.tmp && mv $envTmp.tmp $envTm
 
 mv $envTmp $envEnd
 
+# local overrides, never touched by updates
+if [ ! -f docker-compose.override.yml ]; then
+    (umask 0022 && cp docker-compose.override.yml.dist docker-compose.override.yml)
+fi
+
 ########## pull, build and start environment ##########
 echo "Preparing and starting docker-compose setup ..."
 $dockerComposeBin up -d

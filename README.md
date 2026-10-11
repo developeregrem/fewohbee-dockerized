@@ -19,6 +19,8 @@ The images are versioned via the `FEWOHBEE_VERSION` variable in `.env` (default:
 
 All settings are stored in a single `.env` file. Use `.env.dist` as the reference template.
 
+Local changes to the Compose setup (extra bind mounts, custom nginx or PHP configuration) belong in `docker-compose.override.yml`. The file is created from `docker-compose.override.yml.dist`, is not tracked by git and is never touched by `update-docker.sh`. Do not edit the tracked files `docker-compose.yml` or `docker-compose.no-ssl.yml` — local changes there make `update-docker.sh` abort.
+
 ## Setup
 
 ### Option A – Setup container (recommended, all platforms)
@@ -97,6 +99,18 @@ chmod +x update-docker.sh
 
 The script pulls the current Compose files and images, restarts the stack and automatically adds new variables from `.env.dist` to the local `.env`. New variables should be reviewed and adjusted after the update.
 
+If `update-docker.sh` aborts because `docker-compose.override.yml` has local changes, your installation predates the untracked override file. Move your version aside once, update, and put it back:
+
+```sh
+cp docker-compose.override.yml ../docker-compose.override.yml.mine
+git checkout -- docker-compose.override.yml
+./update-docker.sh
+cp ../docker-compose.override.yml.mine docker-compose.override.yml
+docker compose up -d
+```
+
+The two `conf/db/` mounts for the `db` service can be removed from your copy afterwards: the `db-init` service now creates the backup user.
+
 ### Custom PDF fonts
 
 Administrators can upload TTF and compatible OTF fonts from the template overview in FewohBee. The files are stored in the `uploads-fonts` named volume, shared read-only with the cron container and retained when application containers are replaced. Include this volume in backups when custom fonts are in use.
@@ -123,4 +137,4 @@ Then `docker compose up -d --force-recreate php`.
 ## Documentation
 
 Full setup and configuration documentation:
-[Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup) and [Portainer-Setup](https://github.com/developeregrem/fewohbee/wiki/Portainer)
+[Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup), [Portainer-Setup](https://github.com/developeregrem/fewohbee/wiki/Portainer) and [Arcane-Setup](https://github.com/developeregrem/fewohbee/wiki/Arcane)
