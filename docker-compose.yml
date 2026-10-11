@@ -1,6 +1,6 @@
 x-fewohbee-environment: &fewohbee-environment
     TZ: ${TZ}
-    DB_SERVER_VERSION: 12.2.2-MariaDB
+    DB_SERVER_VERSION: 13.0.2-MariaDB
     LOCALE: ${LOCALE}
     PUBLIC_BASE_URI: ${PUBLIC_BASE_URI:-}
     APP_SECRET: ${APP_SECRET:?see .env.dist}
@@ -142,7 +142,7 @@ services:
         restart: always
 
     db:
-        image: mariadb:12.2
+        image: mariadb:13.0
         restart: always
         volumes:
              - db-vol:/var/lib/mysql:cached
@@ -169,7 +169,7 @@ services:
     # and needs no files from the host, so it works the same with plain
     # docker compose, Portainer and Arcane.
     db-init:
-        image: mariadb:12.2
+        image: mariadb:13.0
         restart: "no"
         depends_on:
             db:
