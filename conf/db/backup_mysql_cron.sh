@@ -17,9 +17,6 @@ then
 	fi
 fi
 
-# perform a mysql_backup first if tehre was an automated version upgrade before
-mariadb-upgrade -uroot -p$MARIADB_ROOT_PASSWORD
-
 
 #-c : complete-insert
 #-n : if exists

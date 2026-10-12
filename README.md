@@ -113,7 +113,7 @@ The two `conf/db/` mounts for the `db` service can be removed from your copy aft
 
 ### Custom PDF fonts
 
-Administrators can upload TTF and compatible OTF fonts from the template overview in FewohBee. The files are stored in the `uploads-fonts` named volume, shared read-only with the cron container and retained when application containers are replaced. Include this volume in backups when custom fonts are in use.
+Administrators can upload TTF and compatible OTF fonts from the template overview in FewohBee. The files are stored in the `uploads-fonts` named volume, shared read-only with the cron container and retained when application containers are replaced. `backup-db.sh` includes this volume in its backup, together with the uploaded images.
 
 ### Updating from a legacy install
 
@@ -137,4 +137,4 @@ Then `docker compose up -d --force-recreate php`.
 ## Documentation
 
 Full setup and configuration documentation:
-[Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup), [Portainer-Setup](https://github.com/developeregrem/fewohbee/wiki/Portainer) and [Arcane-Setup](https://github.com/developeregrem/fewohbee/wiki/Arcane)
+[Docker-Setup](https://github.com/developeregrem/fewohbee/wiki/Docker-Setup), [Arcane-Setup](https://github.com/developeregrem/fewohbee/wiki/Arcane) and [Portainer-Setup](https://github.com/developeregrem/fewohbee/wiki/Portainer)
