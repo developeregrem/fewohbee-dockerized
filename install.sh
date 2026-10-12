@@ -267,7 +267,7 @@ fi
 cronDefault="yes"
 cronDB=""
 cronDocker=""
-read -p "Enable automatic database backups? (yes/no) [$cronDefault]:" cronDB
+read -p "Enable automatic backups of the database, uploaded images and fonts? (yes/no) [$cronDefault]:" cronDB
 cronDB="${cronDB:-${cronDefault}}"
 
 if [ "$cronDB" == "$cronDefault" ]
