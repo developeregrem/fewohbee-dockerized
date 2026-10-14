@@ -348,6 +348,11 @@ while true; do
     waited=$((waited + 5))
 done
 
+########## database backup user ##########
+if ! $dockerComposeBin exec -T db /bin/sh -s < conf/db/create-backup-user.sh; then
+    echo "Warning: could not create the database backup user. See the wiki page Docker-Setup, section Backups."
+fi
+
 ########## init tool ##########
 $dockerComposeBin exec --user www-data php /bin/sh -c "php bin/console app:first-run"
 

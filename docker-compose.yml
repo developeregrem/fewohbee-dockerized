@@ -95,8 +95,6 @@ services:
                 condition: service_healthy
             uploads-migration:
                 condition: service_completed_successfully
-            db-init:
-                condition: service_completed_successfully
         volumes:
             - uploads-export:/var/www/html/public/resources/images/export
             - uploads-roomcat:/var/www/html/public/resources/images/room-categories
@@ -165,41 +163,6 @@ services:
             interval: 10s
             timeout: 5s
             retries: 15
-        networks:
-            - internal-network
-
-    # One-shot init container: creates the read-only database user for backups
-    # (MYSQL_BACKUP_USER) if it does not exist yet. Runs on every `compose up`
-    # and needs no files from the host, so it works the same with plain
-    # docker compose, Portainer and Arcane. It always exits with 0 and only logs
-    # a warning on failure, so a missing backup user never blocks the php service,
-    # which waits for it (required by `docker compose up --wait`, used by Arcane).
-    db-init:
-        image: mariadb:13.0
-        restart: "no"
-        depends_on:
-            db:
-                condition: service_healthy
-        environment:
-            MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-            MYSQL_BACKUP_USER: ${MYSQL_BACKUP_USER:-}
-            MYSQL_BACKUP_PASSWORD: ${MYSQL_BACKUP_PASSWORD:-}
-        entrypoint: ["/bin/sh", "-c"]
-        command:
-            - |
-              if [ -z "$$MYSQL_BACKUP_USER" ] || [ -z "$$MYSQL_BACKUP_PASSWORD" ]; then
-                  echo "db-init: MYSQL_BACKUP_USER or MYSQL_BACKUP_PASSWORD not set, skipping backup user";
-                  exit 0;
-              fi
-              if mariadb -h db -u root -p"$$MARIADB_ROOT_PASSWORD" <<SQL
-              CREATE USER IF NOT EXISTS '$$MYSQL_BACKUP_USER'@'%' IDENTIFIED BY '$$MYSQL_BACKUP_PASSWORD';
-              GRANT LOCK TABLES, SELECT ON *.* TO '$$MYSQL_BACKUP_USER'@'%';
-              SQL
-              then
-                  echo "db-init: backup user $$MYSQL_BACKUP_USER is ready"
-              else
-                  echo "db-init: WARNING could not create backup user $$MYSQL_BACKUP_USER, database backups will fail"
-              fi
         networks:
             - internal-network
 

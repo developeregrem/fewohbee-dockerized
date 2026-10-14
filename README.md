@@ -109,7 +109,7 @@ cp ../docker-compose.override.yml.mine docker-compose.override.yml
 docker compose up -d
 ```
 
-The two `conf/db/` mounts for the `db` service can be removed from your copy afterwards: the `db-init` service now creates the backup user.
+The two `conf/db/` mounts for the `db` service can be removed from your copy afterwards: the backup user already exists in your database.
 
 ### Custom PDF fonts
 
