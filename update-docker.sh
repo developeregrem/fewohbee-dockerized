@@ -122,6 +122,13 @@ if [ "$cronMode" = false ]; then
     syncEnvFromDist
 fi
 
+# docker-compose.override.yml belongs to the user and is not tracked by git. It is
+# referenced by COMPOSE_FILE, so it must exist even without any overrides.
+if [ ! -f docker-compose.override.yml ] && [ -f docker-compose.override.yml.dist ]; then
+    echo "Creating docker-compose.override.yml from docker-compose.override.yml.dist ..."
+    cp docker-compose.override.yml.dist docker-compose.override.yml
+fi
+
 # Pull new images
 $dockerBin compose pull
 

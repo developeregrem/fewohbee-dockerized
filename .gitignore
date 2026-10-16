@@ -2,3 +2,4 @@
 .env.app
 .DS_Store
 conf/nginx/server_name.active
+docker-compose.override.yml
